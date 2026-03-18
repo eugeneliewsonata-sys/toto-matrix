@@ -49,7 +49,7 @@ def init_connection():
 try:
     sheet = init_connection()
 except Exception as e:
-    st.error("Database Connection Error. Please check Streamlit Secrets.")
+    st.error(f"SYSTEM ERROR EXACT CAUSE: {e}") # <-- This is the new line
     st.stop()
 
 def get_database():
