@@ -11,11 +11,12 @@ from google.oauth2.service_account import Credentials
 import streamlit.components.v1 as components
 
 # --- BRANDING & LOGO ---
-LOGO_URL = "https://i.imgur.com/8kX4S7S.png"
+# Updated to a more stable direct link
+LOGO_URL = "https://raw.githubusercontent.com/jovian-explorer/logo-host/main/hengonghuat_logo.png"
 
 st.set_page_config(
     page_title="HengOngHuat Pro",
-    page_icon=LOGO_URL,
+    page_icon="🧧",
     layout="centered"
 )
 
@@ -83,15 +84,26 @@ LANG_DICT = {
     }
 }
 
-# 2. CUSTOM CSS
+# 2. CUSTOM CSS (FIXED ICONS)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
+    
     .main, .stApp { background-color: #ffffff !important; }
-    h1, h2, h3, h4, h5, h6, p, label, .stMetric, span {
+    
+    /* Apply Montserrat to all text BUT NOT ICONS */
+    h1, h2, h3, h4, h5, h6, p, label, .stMetric, span:not(.material-icons) {
         color: #000000 !important;
         font-family: 'Montserrat', sans-serif !important;
     }
+    
+    /* PROTECT THE HAMBURGER & SYSTEM ICONS */
+    button[kind="header"] svg, [data-testid="stSidebarCollapsedControl"] svg {
+        fill: #000000 !important;
+        width: 30px !important;
+        height: 30px !important;
+    }
+
     .stButton>button {
         width: 100%; border-radius: 0px !important; height: 4em;
         background-color: #ffffff !important; color: #000000 !important;
@@ -99,7 +111,7 @@ st.markdown("""
         text-transform: uppercase; letter-spacing: 2px;
     }
     .stButton>button:hover { background-color: #d32f2f !important; color: #ffffff !important; border-color: #d32f2f !important;}
-    .stTextInput>div>div>input { border: 2px solid #000000 !important; }
+    
     [data-testid="stMetricValue"] { color: #d32f2f !important; font-weight: 900 !important; }
     .live-clock { text-align: right; font-weight: 700; font-size: 0.9rem; color: #d32f2f !important; }
     </style>
@@ -128,28 +140,20 @@ def init_connection():
 sheet = init_connection()
 
 def get_database():
-    if sheet is None:
-        return {}
+    if sheet is None: return {}
     records = sheet.get_all_records()
     db = {}
     for i, r in enumerate(records):
         phone = str(r['Phone'])
-        db[phone] = {
-            'code': str(r['Code']),
-            'name': str(r['Name']),
-            'credits': int(r['Credits']),
-            'row': i + 2
-        }
+        db[phone] = {'code': str(r['Code']), 'name': str(r['Name']), 'credits': int(r['Credits']), 'row': i + 2}
     return db
 
 def get_my_time():
     return datetime.utcnow() + timedelta(hours=8)
 
 # 5. STATE
-if 'logged_in' not in st.session_state:
-    st.session_state['logged_in'] = False
-if 'lang' not in st.session_state:
-    st.session_state['lang'] = "English"
+if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
+if 'lang' not in st.session_state: st.session_state['lang'] = "English"
 
 L = LANG_DICT[st.session_state['lang']]
 
@@ -157,7 +161,11 @@ L = LANG_DICT[st.session_state['lang']]
 def show_login_page():
     now = get_my_time().strftime("%d %b %Y | %H:%M:%S")
     st.markdown(f'<p class="live-clock">{now}</p>', unsafe_allow_html=True)
-    st.sidebar.image(LOGO_URL, use_column_width=True)
+    
+    # Hero Logo
+    try: st.image(LOGO_URL, width=250)
+    except: st.title("HENG ONG HUAT")
+    
     st.session_state['lang'] = st.sidebar.selectbox("Language / 语言", ["English", "中文"])
     
     st.title(L['title'])
@@ -174,22 +182,17 @@ def show_login_page():
                 st.session_state['logged_in'] = True
                 st.session_state['current_user'] = p
                 st.rerun()
-            else:
-                st.error("Invalid credentials.")
+            else: st.error("Invalid credentials.")
                 
     with t2:
-        rn = st.text_input(L['name'])
-        rp = st.text_input(L['phone_id'], key="rp")
-        rc = st.text_input(L['pass'], type="password", key="rc")
+        rn, rp, rc = st.text_input(L['name']), st.text_input(L['phone_id'], key="rp"), st.text_input(L['pass'], type="password", key="rc")
         if st.button(L['btn_reg']):
             if rn and rp and rc:
-                if rp in db:
-                    st.error("User exists.")
+                if rp in db: st.error("User exists.")
                 else:
                     sheet.append_row([rp, rc, rn, 0])
                     st.success("Registered! Login now.")
-            else:
-                st.error("Fill all fields.")
+            else: st.error("Fill all fields.")
 
 if st.session_state['logged_in']:
     db = get_database()
@@ -208,8 +211,7 @@ if st.session_state['logged_in']:
         st.markdown(f"## {L['credits']}: **{user_data['credits']}**")
         st.divider()
         nav_opts = [L['engine'], L['account']]
-        if user_id == "admin":
-            nav_opts.append(L['admin'])
+        if user_id == "admin": nav_opts.append(L['admin'])
         page = st.radio(L['menu'], nav_opts)
         st.divider()
         with st.expander(L['install']):
@@ -224,109 +226,66 @@ if st.session_state['logged_in']:
         if st.button(L['btn_gen']):
             if user_data['credits'] > 0:
                 with st.spinner(L['calibrating']):
-                    # --- ULTRA HUAT CELEBRATION (GOLD COINS) ---
-                    components.html(
-                        """
+                    # HUAT COINS ANIMATION
+                    components.html("""
                         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
                         <script>
                             const duration = 3 * 1000;
                             const end = Date.now() + duration;
                             (function frame() {
-                                confetti({
-                                    particleCount: 5,
-                                    angle: 60,
-                                    spread: 55,
-                                    origin: { x: 0 },
-                                    colors: ['#FFD700', '#FFA500', '#FF4500']
-                                });
-                                confetti({
-                                    particleCount: 5,
-                                    angle: 120,
-                                    spread: 55,
-                                    origin: { x: 1 },
-                                    colors: ['#FFD700', '#FFA500', '#FF4500']
-                                });
-                                if (Date.now() < end) {
-                                    requestAnimationFrame(frame);
-                                }
+                                confetti({particleCount: 7, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#FFD700', '#FFA500']});
+                                confetti({particleCount: 7, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#FFD700', '#FFA500']});
+                                if (Date.now() < end) { requestAnimationFrame(frame); }
                             }());
                         </script>
-                        <audio autoplay style="display:none;">
-                            <source src="https://www.soundjay.com/misc/sounds/cash-register-purchase-1.mp3" type="audio/mpeg">
-                        </audio>
-                        """,
-                        height=0,
-                    )
+                        <audio autoplay style="display:none;"><source src="https://www.soundjay.com/misc/sounds/cash-register-purchase-1.mp3" type="audio/mpeg"></audio>
+                    """, height=0)
                     
-                    # Deduct Credit
                     new_bal = user_data['credits'] - 1
                     sheet.update_cell(user_data['row'], 4, new_bal)
                     
-                    # Scraping Live Data
                     try:
                         resp = requests.get("https://www.4dmoon.com/", headers={'User-Agent': 'Mozilla/5.0'}, timeout=5)
                         live_nums = "".join(re.findall(r'\b\d{4}\b', BeautifulSoup(resp.text, 'html.parser').get_text())[:120])
-                    except:
-                        live_nums = ""
-                        
+                    except: live_nums = ""
                     ranked = [d for d, _ in collections.Counter(VAULT_4D_BASE + live_nums).most_common()]
                     
                     st.success(f"{L['generated']} {L['bal']}: {new_bal}")
                     
-                    # 4D Display
                     st.markdown(f"### {L['lines_4d']}")
                     c4 = st.columns(2)
                     for i in range(10):
                         line = random.sample(ranked[:4], 3) + random.sample(ranked[4:8], 1)
                         random.shuffle(line)
-                        with c4[i%2]:
-                            st.metric(f"No.{i+1}", "".join(line))
+                        with c4[i%2]: st.metric(f"No.{i+1}", "".join(line))
                             
-                    # Helper for hot numbers
                     def get_hot(v_list, count=12):
                         all_n = [n for sub in v_list for n in sub]
                         return [n for n, _ in collections.Counter(all_n).most_common(count)]
 
-                    # Supreme
-                    st.divider()
-                    st.markdown(f"### {L['lines_58']}")
-                    h58 = get_hot(VAULT_658)
-                    cs = st.columns(2)
+                    # Matrix Games
+                    st.divider(); st.markdown(f"### {L['lines_58']}")
+                    h58 = get_hot(VAULT_658); cs = st.columns(2)
                     for i in range(6):
-                        nums = sorted(random.sample(h58, 6))
-                        with cs[i%2]:
-                            st.info(" ".join(f"{n:02d}" for n in nums))
+                        with cs[i%2]: st.info(" ".join(f"{n:02d}" for n in sorted(random.sample(h58, 6))))
                             
-                    # Power
-                    st.divider()
-                    st.markdown(f"### {L['lines_55']}")
-                    h55 = get_hot(VAULT_655)
-                    cp = st.columns(2)
+                    st.divider(); st.markdown(f"### {L['lines_55']}")
+                    h55 = get_hot(VAULT_655); cp = st.columns(2)
                     for i in range(6):
-                        nums = sorted(random.sample(h55, 6))
-                        with cp[i%2]:
-                            st.info(" ".join(f"{n:02d}" for n in nums))
+                        with cp[i%2]: st.info(" ".join(f"{n:02d}" for n in sorted(random.sample(h55, 6))))
                             
-                    # Star
-                    st.divider()
-                    st.markdown(f"### {L['lines_50']}")
-                    h50 = get_hot(VAULT_650)
-                    ct = st.columns(2)
+                    st.divider(); st.markdown(f"### {L['lines_50']}")
+                    h50 = get_hot(VAULT_650); ct = st.columns(2)
                     for i in range(6):
-                        nums = sorted(random.sample(h50, 6))
-                        with ct[i%2]:
-                            st.info(" ".join(f"{n:02d}" for n in nums))
-            else:
-                st.error("No Credits.")
+                        with ct[i%2]: st.info(" ".join(f"{n:02d}" for n in sorted(random.sample(h50, 6))))
+            else: st.error("No Credits.")
 
     elif page == L['account']:
         st.title(L['account'])
         st.info(f"{L['credits']}: {user_data['credits']}")
-        st.divider()
-        st.markdown(f"### {L['topup']}")
+        st.divider(); st.markdown(f"### {L['topup']}")
         st.link_button(L['buy_btn'], "https://buy.stripe.com/28E9AT5qh3oX9w0anIcbC02")
         st.caption(L['whatsapp'])
 
-else:
-    show_login_page()
+else: show_login_page()
 st.caption("© 2026 HENG ONG HUAT ANALYTICS.")
