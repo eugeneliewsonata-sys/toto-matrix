@@ -21,15 +21,18 @@ st.markdown("""
     .main { background-color: #ffffff !important; }
     .stApp { background-color: #ffffff !important; }
     
-    /* Target only our text, not system icons */
-    .stMarkdown, .stText, .stTitle, h1, h2, h3, h4, h5, h6, p, span, label, [data-testid="stMetricValue"] { 
+    /* Target Text ONLY - Exclude Icons */
+    h1, h2, h3, h4, h5, h6, p, label, .stMetric, .stSelectbox, .stTextInput input { 
         color: #000000 !important; 
         font-family: 'Montserrat', sans-serif !important; 
     }
     
-    /* FIX: Ensure the top-bar icons don't show as text */
-    header, [data-testid="stHeader"] { background-color: rgba(255,255,255,0) !important; color: #000000 !important; }
-    
+    /* FIX: Stop icons from turning into words */
+    .material-icons, .notranslate, i, [data-testid="stIcon"] {
+        font-family: 'Material Icons' !important;
+        text-transform: none !important;
+    }
+
     /* THE BUTTON: White Background, Black Text, Bold Border */
     .stButton>button { 
         width: 100%; border-radius: 0px !important; height: 4em; 
@@ -42,7 +45,8 @@ st.markdown("""
     /* Input Fields */
     .stTextInput>div>div>input { border: 2px solid #000000 !important; color: #000000 !important; }
     
-    /* Info boxes and Dividers */
+    /* Metrics and Dividers */
+    [data-testid="stMetricValue"] { color: #000000 !important; font-weight: 900 !important; font-size: 2.2rem !important; }
     .stInfo { background-color: #f2f2f2 !important; border: 2px solid #000000 !important; color: #000000 !important; font-weight: bold;}
     hr { border-top: 2px solid #000000 !important; }
     
@@ -76,7 +80,6 @@ def get_database():
     records = sheet.get_all_records()
     return {str(r['Phone']): {'code': str(r['Code']), 'name': str(r['Name']), 'credits': int(r['Credits']), 'row': i + 2} for i, r in enumerate(records)}
 
-# MALAYSIA TIME HELPER
 def get_malaysia_time():
     return datetime.utcnow() + timedelta(hours=8)
 
@@ -111,7 +114,6 @@ if st.session_state['logged_in']:
     db = get_database(); user_id = st.session_state['current_user']
     if user_id not in db: st.session_state['logged_in'] = False; st.rerun()
     user_data = db[user_id]
-    
     now_my = get_malaysia_time().strftime("%A, %d %b %Y | %H:%M:%S")
     st.markdown(f'<p class="live-clock">KL TIME: {now_my}</p>', unsafe_allow_html=True)
 
@@ -145,19 +147,16 @@ if st.session_state['logged_in']:
                         </audio>
                         """, height=0
                     )
-                    
                     new_bal = user_data['credits'] - 1
                     sheet.update_cell(user_data['row'], 4, new_bal)
                     live = get_live_data()
                     ranked = [d for d, _ in collections.Counter((VAULT_4D * 4) + live).most_common()]
-                    
                     st.success(f"Generated! Balance: {new_bal}")
                     
                     def get_hot(v_list, total_range, count=12):
                         all_nums = [n for sub in v_list for n in sub] if v_list else list(range(1, total_range+1))
                         return [n for n, _ in collections.Counter(all_nums).most_common(count)]
 
-                    # 4D
                     st.markdown("### 10 Calibrated 4D Lines")
                     c4 = st.columns(2)
                     for i in range(10):
@@ -165,7 +164,6 @@ if st.session_state['logged_in']:
                         random.shuffle(line)
                         with c4[i % 2]: st.metric(f"4D-{i+1}", "".join(line))
                     
-                    # Jackpot Sections
                     st.divider(); st.markdown("### 6 Supreme 6/58 Matrix Lines")
                     h58 = get_hot(VAULT_658, 58); cs = st.columns(2)
                     for i in range(6):
