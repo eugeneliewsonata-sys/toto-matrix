@@ -5,86 +5,112 @@ import collections
 import random
 import re
 
-# 1. Premium App Branding & Style
+# 1. COMMERCIAL BRANDING & THEME
 st.set_page_config(page_title="Lucky Matrix Pro", page_icon="💎", layout="centered")
 
-# Custom CSS to make it look like a "Commercial App"
-# FIXED: changed unsafe_content_html to unsafe_allow_html
 st.markdown("""
     <style>
     .main { background-color: #0e1117; }
-    .stButton>button { width: 100%; border-radius: 10px; height: 3em; background-color: #00ff41; color: black; font-weight: bold; }
+    .stButton>button { width: 100%; border-radius: 10px; height: 3.5em; background-color: #00ff41; color: black; font-weight: bold; border: none; }
     .stTextInput>div>div>input { border-radius: 10px; }
+    .subscription-box { border: 1px solid #00ff41; padding: 20px; border-radius: 15px; background-color: #1a1c24; text-align: center; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. THE GATEKEEPER (Login Logic)
+# 2. THE HISTORICAL DATA VAULT (Eugene's Fed Data)
+VAULT_4D = "80474206710328685044035084831805444041755938586455209168453600187307197177718803120963611044"
+VAULT_658 = [
+    [18, 19, 29, 30, 36, 54], [2, 16, 20, 33, 34, 49], [8, 16, 22, 33, 53, 56],
+    [4, 5, 13, 17, 22, 54], [7, 10, 18, 23, 26, 41], [26, 34, 39, 46, 47, 49],
+    [5, 6, 15, 22, 40, 53], [4, 19, 29, 39, 50, 54]
+]
+
+# 3. LOGIN & PAYMENT GATEWAY
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
 
-def check_login():
-    if st.session_state['logged_in']:
-        return True
+def show_login_page():
+    st.title("💎 Lucky Matrix Pro")
+    st.subheader("JH Creative Enterprise | Intelligence Portal")
     
-    st.title("💎 Lucky Matrix: Pro Access")
-    st.write("Welcome, Eugene. Please enter your JH Creative credentials to unlock the engine.")
-    
-    # YOUR PASSWORD IS: eugene2026
-    password = st.text_input("Enter Access Key", type="password")
-    if st.button("Unlock Engine"):
-        if password == "eugene2026": 
-            st.session_state['logged_in'] = True
-            st.rerun()
-        else:
-            st.error("Invalid Access Key. Please contact administrator.")
-    return False
+    # Login Section
+    with st.container():
+        st.write("### Member Login")
+        # PASSWORD IS: eugene2026
+        password = st.text_input("Enter Access Key", type="password")
+        if st.button("Unlock Pro Engine"):
+            if password == "eugene2026":
+                st.session_state['logged_in'] = True
+                st.rerun()
+            else:
+                st.error("Access Key Invalid.")
 
-# 3. THE ANALYTICS ENGINE (Only runs if logged in)
-if check_login():
+    st.divider()
+
+    # Subscription Section (Commercial Feature)
+    st.markdown("""
+        <div class="subscription-box">
+            <h3>🚀 No Access? Get Pro Today</h3>
+            <p>Unlock the High-Frequency Matrix & Live Data Scraper.</p>
+            <p><b>RM 19.00 / Month</b></p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    st.write("")
+    # This button links to a payment gateway (Replace URL with your Stripe/WhatsApp link)
+    st.link_button("💳 SUBSCRIBE VIA GRABPAY / TNG", "https://buy.stripe.com/test_placeholder") 
+    st.caption("Secured by JH Creative Enterprise Payment Gateway")
+
+# 4. ENGINE CORE (Runs after login)
+if st.session_state['logged_in']:
     st.title("🍀 Lucky Matrix Pro")
-    st.subheader("JH Creative Enterprise | Frequency Engine")
+    st.write(f"Logged in as: **JH Creative Admin**")
     
     with st.sidebar:
-        st.write(f"**Status:** Premium Member")
+        st.header("Admin Controls")
         if st.button("Log Out"):
             st.session_state['logged_in'] = False
             st.rerun()
 
-    st.divider()
-
     @st.cache_data(ttl=3600)
-    def scrape_live_results():
-        # Scrapes current board data for frequency analysis
-        url = "https://check4d.com/" 
-        headers = {'User-Agent': 'Mozilla/5.0'}
+    def get_live_data():
         try:
-            response = requests.get(url, headers=headers, timeout=5)
-            soup = BeautifulSoup(response.text, 'html.parser')
-            raw_text = soup.get_text()
-            found_numbers = re.findall(r'\b\d{4}\b', raw_text)
-            return "".join(found_numbers[:100]) if found_numbers else None
-        except:
-            return None
+            url = "https://check4d.com/"
+            r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=5)
+            nums = re.findall(r'\b\d{4}\b', BeautifulSoup(r.text, 'html.parser').get_text())
+            return "".join(nums[:100])
+        except: return ""
 
-    if st.button("🚀 GENERATE MASTER i-PERMS"):
-        with st.spinner("Analyzing live frequency shifts..."):
-            live_data = scrape_live_results()
-            if live_data:
-                digit_counts = collections.Counter(live_data)
-                hot_digits = [digit for digit, _ in digit_counts.most_common(4)]
-                cold_digits = [digit for digit, _ in reversed(digit_counts.most_common(3))]
-                
-                st.success("Matrix Calibrated for Today's Draw.")
-                
-                # Show the Lucky 4D tickets in a nice grid
-                cols = st.columns(2)
-                for i in range(6):
-                    line = random.sample(hot_digits, 3) + random.sample(cold_digits, 1)
-                    random.shuffle(line)
-                    with cols[i % 2]:
-                        st.info(f"**Ticket {i+1}**\n\n# **{''.join(line)}**")
-            else:
-                st.error("Data feed interrupted. Check server status.")
+    if st.button("🚀 RUN FREQUENCY ANALYSIS"):
+        with st.spinner("Analyzing Vault + Live Feed..."):
+            live = get_live_data()
+            pool = live + VAULT_4D
+            counts = collections.Counter(pool)
+            hot = [d for d, _ in counts.most_common(4)]
+            cold = [d for d, _ in reversed(counts.most_common(3))]
 
-    st.divider()
-    st.caption("© 2026 JH Creative Enterprise. Built for high-frequency analysis.")
+            st.success("Analysis Complete.")
+            
+            st.markdown("### 🎫 Premium 4D i-Perms")
+            c = st.columns(3)
+            for i in range(6):
+                line = random.sample(hot, 3) + random.sample(cold, 1)
+                random.shuffle(line)
+                with c[i % 3]: st.info(f"**#{i+1}**\n\n# **{''.join(line)}**")
+
+            st.divider()
+            st.markdown("### 🔴 Supreme 6/58 Master Lines")
+            l_pool = [b for d in VAULT_658 for b in d]
+            l_counts = collections.Counter(l_pool)
+            l_hot = [b for b, _ in l_counts.most_common(12)]
+            
+            lc = st.columns(2)
+            for i in range(4):
+                line = sorted(random.sample(l_hot, 6))
+                with lc[i % 2]: st.success(f"**Line {i+1}**\n\n**{' '.join(f'{n:02d}' for n in line)}**")
+
+else:
+    show_login_page()
+
+st.divider()
+st.caption("© 2026 JH Creative Enterprise. Pro Tier Data Analysis.")
