@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import json
 import gspread
 from google.oauth2.service_account import Credentials
+import streamlit.components.v1 as components
 
 # 1. PREMIUM BRANDING & FONT
 st.set_page_config(page_title="Lucky Number Pro", page_icon="📈", layout="centered")
@@ -54,8 +55,7 @@ def init_connection():
 try:
     sheet = init_connection()
 except Exception as e:
-    st.error(f"DATABASE ERROR: {e}")
-    st.stop()
+    st.error(f"DATABASE ERROR: {e}"); st.stop()
 
 def get_database():
     records = sheet.get_all_records()
@@ -81,29 +81,20 @@ def show_login_page():
         c = st.text_input("ACCESS CODE", type="password", key="l_c")
         if st.button("ENTER PORTAL"):
             if p in db and str(db[p]['code']) == c:
-                st.session_state['logged_in'] = True
-                st.session_state['current_user'] = p
-                st.rerun()
-            else:
-                st.error("Incorrect details.")
+                st.session_state['logged_in'] = True; st.session_state['current_user'] = p; st.rerun()
+            else: st.error("Incorrect details.")
     with tab2:
         rn, rp, rc = st.text_input("NAME"), st.text_input("PHONE"), st.text_input("CREATE CODE", type="password")
         if st.button("CREATE ACCOUNT"):
             if rn and rp and rc:
                 if rp in db: st.error("Exists.")
-                else:
-                    sheet.append_row([rp, rc, rn, 0])
-                    st.success("Success! Now Login.")
-            else:
-                st.error("Fill all fields.")
+                else: sheet.append_row([rp, rc, rn, 0]); st.success("Success! Now Login.")
+            else: st.error("Fill all fields.")
 
 # 5. MAIN APP
 if st.session_state['logged_in']:
-    db = get_database()
-    user_id = st.session_state['current_user']
-    if user_id not in db:
-        st.session_state['logged_in'] = False
-        st.rerun()
+    db = get_database(); user_id = st.session_state['current_user']
+    if user_id not in db: st.session_state['logged_in'] = False; st.rerun()
     user_data = db[user_id]
     
     now_my = get_malaysia_time().strftime("%A, %d %b %Y | %H:%M:%S")
@@ -116,9 +107,7 @@ if st.session_state['logged_in']:
         nav = ["Matrix Engine", "My Account"]
         if user_id == "admin": nav.append("Admin Panel")
         page = st.radio("MENU", nav)
-        if st.button("LOGOUT"):
-            st.session_state['logged_in'] = False
-            st.rerun()
+        if st.button("LOGOUT"): st.session_state['logged_in'] = False; st.rerun()
 
     if page == "Matrix Engine":
         st.title("PRO MATRIX ENGINE")
@@ -133,7 +122,16 @@ if st.session_state['logged_in']:
         if st.button("GENERATE MASTER ANALYSIS"):
             if user_data['credits'] > 0:
                 with st.spinner("CALIBRATING..."):
+                    # MONEY SOUND + BALLOONS
                     st.balloons()
+                    components.html(
+                        """
+                        <audio autoplay style="display:none;">
+                            <source src="https://www.soundjay.com/misc/sounds/cash-register-purchase-1.mp3" type="audio/mpeg">
+                        </audio>
+                        """, height=0
+                    )
+                    
                     new_bal = user_data['credits'] - 1
                     sheet.update_cell(user_data['row'], 4, new_bal)
                     live = get_live_data()
@@ -150,8 +148,7 @@ if st.session_state['logged_in']:
                     for i in range(10):
                         line = random.sample(ranked[:4], 3) + random.sample(ranked[4:8], 1)
                         random.shuffle(line)
-                        with c4[i % 2]:
-                            st.metric(f"4D-{i+1}", "".join(line))
+                        with c4[i % 2]: st.metric(f"4D-{i+1}", "".join(line))
                     
                     st.divider()
                     st.markdown("### 6 Supreme 6/58 Matrix Lines")
@@ -181,9 +178,7 @@ if st.session_state['logged_in']:
         st.title("SYSTEM ADMIN")
         tp, tc = st.text_input("Phone"), st.number_input("Add Credits", value=50)
         if st.button("UPDATE"):
-            if tp in db:
-                sheet.update_cell(db[tp]['row'], 4, db[tp]['credits'] + tc)
-                st.success("Done!")
+            if tp in db: sheet.update_cell(db[tp]['row'], 4, db[tp]['credits'] + tc); st.success("Done!")
             else: st.error("Not Found")
         st.dataframe(db)
 else: show_login_page()
