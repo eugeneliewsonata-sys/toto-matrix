@@ -16,10 +16,21 @@ st.set_page_config(page_title="Lucky Number Pro", page_icon="📈", layout="cent
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
+    
+    /* Global Styles */
     .main { background-color: #ffffff !important; }
     .stApp { background-color: #ffffff !important; }
-    h1, h2, h3, h4, h5, h6, p, span, label, .stMetric { color: #000000 !important; font-family: 'Montserrat', sans-serif !important; }
     
+    /* Target only our text, not system icons */
+    .stMarkdown, .stText, .stTitle, h1, h2, h3, h4, h5, h6, p, span, label, [data-testid="stMetricValue"] { 
+        color: #000000 !important; 
+        font-family: 'Montserrat', sans-serif !important; 
+    }
+    
+    /* FIX: Ensure the top-bar icons don't show as text */
+    header, [data-testid="stHeader"] { background-color: rgba(255,255,255,0) !important; color: #000000 !important; }
+    
+    /* THE BUTTON: White Background, Black Text, Bold Border */
     .stButton>button { 
         width: 100%; border-radius: 0px !important; height: 4em; 
         background-color: #ffffff !important; color: #000000 !important; 
@@ -28,10 +39,14 @@ st.markdown("""
     }
     .stButton>button:hover { background-color: #000000 !important; color: #ffffff !important; }
     
+    /* Input Fields */
     .stTextInput>div>div>input { border: 2px solid #000000 !important; color: #000000 !important; }
-    [data-testid="stMetricValue"] { color: #000000 !important; font-weight: 900 !important; font-size: 2.2rem !important; }
+    
+    /* Info boxes and Dividers */
     .stInfo { background-color: #f2f2f2 !important; border: 2px solid #000000 !important; color: #000000 !important; font-weight: bold;}
     hr { border-top: 2px solid #000000 !important; }
+    
+    /* Clock Styling */
     .live-clock { text-align: right; font-weight: 700; font-size: 0.9rem; color: #666666 !important; letter-spacing: 1px; }
     </style>
     """, unsafe_allow_html=True)
@@ -122,7 +137,6 @@ if st.session_state['logged_in']:
         if st.button("GENERATE MASTER ANALYSIS"):
             if user_data['credits'] > 0:
                 with st.spinner("CALIBRATING..."):
-                    # MONEY SOUND + BALLOONS
                     st.balloons()
                     components.html(
                         """
@@ -143,6 +157,7 @@ if st.session_state['logged_in']:
                         all_nums = [n for sub in v_list for n in sub] if v_list else list(range(1, total_range+1))
                         return [n for n, _ in collections.Counter(all_nums).most_common(count)]
 
+                    # 4D
                     st.markdown("### 10 Calibrated 4D Lines")
                     c4 = st.columns(2)
                     for i in range(10):
@@ -150,20 +165,18 @@ if st.session_state['logged_in']:
                         random.shuffle(line)
                         with c4[i % 2]: st.metric(f"4D-{i+1}", "".join(line))
                     
-                    st.divider()
-                    st.markdown("### 6 Supreme 6/58 Matrix Lines")
+                    # Jackpot Sections
+                    st.divider(); st.markdown("### 6 Supreme 6/58 Matrix Lines")
                     h58 = get_hot(VAULT_658, 58); cs = st.columns(2)
                     for i in range(6):
                         with cs[i % 2]: st.info(" ".join(f"{n:02d}" for n in sorted(random.sample(h58, 6))))
 
-                    st.divider()
-                    st.markdown("### 6 Power 6/55 Matrix Lines")
+                    st.divider(); st.markdown("### 6 Power 6/55 Matrix Lines")
                     h55 = get_hot(VAULT_655, 55); cp = st.columns(2)
                     for i in range(6):
                         with cp[i % 2]: st.info(" ".join(f"{n:02d}" for n in sorted(random.sample(h55, 6))))
 
-                    st.divider()
-                    st.markdown("### 6 Star 6/50 Matrix Lines")
+                    st.divider(); st.markdown("### 6 Star 6/50 Matrix Lines")
                     h50 = get_hot(VAULT_650, 50); ct = st.columns(2)
                     for i in range(6):
                         with ct[i % 2]: st.info(" ".join(f"{n:02d}" for n in sorted(random.sample(h50, 6))))
@@ -176,7 +189,7 @@ if st.session_state['logged_in']:
 
     elif page == "Admin Panel":
         st.title("SYSTEM ADMIN")
-        tp, tc = st.text_input("Phone"), st.number_input("Add Credits", value=50)
+        tp, tc = st.text_input("Phone ID"), st.number_input("Add Credits", value=50)
         if st.button("UPDATE"):
             if tp in db: sheet.update_cell(db[tp]['row'], 4, db[tp]['credits'] + tc); st.success("Done!")
             else: st.error("Not Found")
