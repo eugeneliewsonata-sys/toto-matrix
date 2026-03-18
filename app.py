@@ -36,14 +36,14 @@ def show_login_page():
     # Login Section
     with st.container():
         st.write("### Member Login")
-        # PASSWORD IS: eugene2026
+        # ACCESS KEY IS: eugene2026
         password = st.text_input("Enter Access Key", type="password")
         if st.button("Unlock Pro Engine"):
             if password == "eugene2026":
                 st.session_state['logged_in'] = True
                 st.rerun()
             else:
-                st.error("Access Key Invalid.")
+                st.error("Access Key Invalid. Please subscribe below.")
 
     st.divider()
 
@@ -57,9 +57,9 @@ def show_login_page():
     """, unsafe_allow_html=True)
     
     st.write("")
-    # This button links to a payment gateway (Replace URL with your Stripe/WhatsApp link)
-    st.link_button("💳 SUBSCRIBE VIA GRABPAY / TNG", "https://buy.stripe.com/test_placeholder") 
-    st.caption("Secured by JH Creative Enterprise Payment Gateway")
+    # YOUR ACTUAL STRIPE LINK INTEGRATED HERE
+    st.link_button("💳 SUBSCRIBE VIA GRABPAY / TNG / CARD", "https://buy.stripe.com/7sY8wPdWN7FdeQkanIcbC00") 
+    st.caption("Transactions secured via JH Creative Enterprise & Stripe")
 
 # 4. ENGINE CORE (Runs after login)
 if st.session_state['logged_in']:
@@ -113,4 +113,4 @@ else:
     show_login_page()
 
 st.divider()
-st.caption("© 2026 JH Creative Enterprise. Pro Tier Data Analysis.")
+st.caption("© 2026 JH Creative Enterprise. All Rights Reserved.")
