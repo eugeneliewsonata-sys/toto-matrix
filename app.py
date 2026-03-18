@@ -9,13 +9,14 @@ import re
 st.set_page_config(page_title="Lucky Matrix Pro", page_icon="💎", layout="centered")
 
 # Custom CSS to make it look like a "Commercial App"
+# FIXED: changed unsafe_content_html to unsafe_allow_html
 st.markdown("""
     <style>
     .main { background-color: #0e1117; }
     .stButton>button { width: 100%; border-radius: 10px; height: 3em; background-color: #00ff41; color: black; font-weight: bold; }
     .stTextInput>div>div>input { border-radius: 10px; }
     </style>
-    """, unsafe_content_html=True)
+    """, unsafe_allow_html=True)
 
 # 2. THE GATEKEEPER (Login Logic)
 if 'logged_in' not in st.session_state:
@@ -28,9 +29,9 @@ def check_login():
     st.title("💎 Lucky Matrix: Pro Access")
     st.write("Welcome, Eugene. Please enter your JH Creative credentials to unlock the engine.")
     
+    # YOUR PASSWORD IS: eugene2026
     password = st.text_input("Enter Access Key", type="password")
     if st.button("Unlock Engine"):
-        # SET YOUR PASSWORD HERE (e.g., 'eugene2026')
         if password == "eugene2026": 
             st.session_state['logged_in'] = True
             st.rerun()
@@ -53,6 +54,7 @@ if check_login():
 
     @st.cache_data(ttl=3600)
     def scrape_live_results():
+        # Scrapes current board data for frequency analysis
         url = "https://check4d.com/" 
         headers = {'User-Agent': 'Mozilla/5.0'}
         try:
@@ -74,13 +76,13 @@ if check_login():
                 
                 st.success("Matrix Calibrated for Today's Draw.")
                 
-                # Show the Lucky 4D tickets
+                # Show the Lucky 4D tickets in a nice grid
                 cols = st.columns(2)
                 for i in range(6):
                     line = random.sample(hot_digits, 3) + random.sample(cold_digits, 1)
                     random.shuffle(line)
                     with cols[i % 2]:
-                        st.metric(label=f"Ticket {i+1}", value="".join(line))
+                        st.info(f"**Ticket {i+1}**\n\n# **{''.join(line)}**")
             else:
                 st.error("Data feed interrupted. Check server status.")
 
