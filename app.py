@@ -8,24 +8,76 @@ from datetime import datetime
 import json
 import gspread
 from google.oauth2.service_account import Credentials
+import time
 
-# 1. HIGH-CONTRAST INK BRANDING
+# 1. PREMIUM BRANDING & FONT
 st.set_page_config(page_title="Lucky Number Pro", page_icon="📈", layout="centered")
 
+# Injecting Montserrat Font and High-Contrast CSS
 st.markdown("""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
+
     .main { background-color: #ffffff !important; }
     .stApp { background-color: #ffffff !important; }
-    h1, h2, h3, h4, h5, h6 { color: #000000 !important; font-family: 'Inter', sans-serif; font-weight: 800 !important;}
-    p, span, label, div { color: #000000 !important; }
-    .stButton>button { width: 100%; border-radius: 4px !important; height: 3.5em; background-color: #000000 !important; color: #ffffff !important; font-weight: 700 !important; border: 2px solid #000000 !important; text-transform: uppercase; letter-spacing: 1px; }
-    .stTextInput>div>div>input { border: 1px solid #000000 !important; background-color: #ffffff !important; color: #000000 !important; }
-    [data-testid="stMetricValue"] { color: #000000 !important; font-weight: 900 !important; }
-    [data-testid="stMetricLabel"] { color: #666666 !important; }
-    .stInfo { background-color: #f2f2f2 !important; border: 1px solid #000000 !important; color: #000000 !important; font-weight: bold;}
-    hr { border-top: 1px solid #000000 !important; }
-    .stTabs [data-baseweb="tab-list"] { gap: 24px; }
-    .stTabs [data-baseweb="tab"] { height: 50px; white-space: pre-wrap; background-color: #ffffff; border-radius: 4px; color: #000000; font-weight: bold;}
+    
+    /* Global Font & Text Color */
+    h1, h2, h3, h4, h5, h6, p, span, label, .stMetric { 
+        color: #000000 !important; 
+        font-family: 'Montserrat', sans-serif !important; 
+    }
+
+    /* THE BUTTON: White Background, Black Text, Bold Border */
+    .stButton>button { 
+        width: 100%; 
+        border-radius: 0px !important; 
+        height: 4em; 
+        background-color: #ffffff !important; 
+        color: #000000 !important; 
+        font-weight: 900 !important; 
+        font-family: 'Montserrat', sans-serif !important;
+        border: 4px solid #000000 !important; 
+        text-transform: uppercase; 
+        letter-spacing: 2px;
+        transition: 0.2s ease-in-out;
+    }
+    
+    .stButton>button:hover {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 4px solid #000000 !important;
+    }
+
+    /* Input Fields Customization */
+    .stTextInput>div>div>input { 
+        border: 2px solid #000000 !important; 
+        background-color: #ffffff !important; 
+        color: #000000 !important; 
+        font-family: 'Montserrat', sans-serif !important;
+    }
+
+    [data-testid="stMetricValue"] { color: #000000 !important; font-weight: 900 !important; font-size: 2.5rem !important; }
+    .stInfo { background-color: #f2f2f2 !important; border: 2px solid #000000 !important; color: #000000 !important; font-weight: bold;}
+    hr { border-top: 2px solid #000000 !important; }
+    
+    /* Tabs Style */
+    .stTabs [data-baseweb="tab-list"] { gap: 20px; }
+    .stTabs [data-baseweb="tab"] { 
+        height: 50px; 
+        background-color: #ffffff; 
+        color: #000000; 
+        font-weight: 700;
+        font-family: 'Montserrat', sans-serif !important;
+    }
+
+    /* Clock Styling */
+    .live-clock {
+        text-align: right;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #666666 !important;
+        letter-spacing: 1px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -37,191 +89,138 @@ VAULT_658 = [
     [5, 6, 15, 22, 40, 53], [4, 19, 29, 39, 50, 54]
 ]
 
-# 3. DIRECT URL DATABASE CONNECTION
+# 3. DATABASE CONNECTION
 @st.cache_resource
 def init_connection():
     creds_dict = json.loads(st.secrets["gcp_json"])
     scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
     creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
     client = gspread.authorize(creds)
-    
-    # Bypass Drive Search -> Go Directly to your Sheet
     sheet_url = "https://docs.google.com/spreadsheets/d/1-tS2J7ud1Nu5swMo9kBPHWRtwYjH70lU1TQObnw3YWA/edit?gid=0#gid=0"
     return client.open_by_url(sheet_url).worksheet("Users")
 
 try:
     sheet = init_connection()
 except Exception as e:
-    st.error(f"SYSTEM ERROR EXACT CAUSE: {e}")
+    st.error(f"DATABASE ERROR: {e}")
     st.stop()
 
 def get_database():
     records = sheet.get_all_records()
     db = {}
     for i, r in enumerate(records):
-        # i+2 because row 1 is headers, row 2 is index 0 in data
         db[str(r['Phone'])] = {'code': str(r['Code']), 'name': str(r['Name']), 'credits': int(r['Credits']), 'row': i + 2}
     return db
 
-# 4. SESSION STATE INIT
+# 4. LOGIN LOGIC
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
     st.session_state['current_user'] = ""
 
 def show_login_page():
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.title("LUCKY NUMBER PRO")
-    st.write("Matrix Analytics Platform")
+    # Live Clock on Login Page
+    now = datetime.now().strftime("%A, %d %b %Y | %H:%M:%S")
+    st.markdown(f'<p class="live-clock">{now}</p>', unsafe_allow_html=True)
     
+    st.title("LUCKY NUMBER PRO")
+    st.write("Professional Matrix Analytics")
     db = get_database()
-    tab1, tab2 = st.tabs(["🔐 EXISTING MEMBER", "📝 CREATE ACCOUNT"])
+    tab1, tab2 = st.tabs(["🔐 LOGIN", "📝 REGISTER"])
     
     with tab1:
-        st.markdown("### ACCOUNT LOGIN")
-        phone_number = st.text_input("PHONE NUMBER", placeholder="e.g., 0123456789", key="login_phone")
-        access_code = st.text_input("ACCESS CODE", type="password", key="login_code")
-        
-        if st.button("Secure Login"):
+        phone_number = st.text_input("PHONE ID", placeholder="012xxxxxxx", key="l_p")
+        access_code = st.text_input("ACCESS CODE", type="password", key="l_c")
+        if st.button("ENTER PORTAL"):
             if phone_number in db and str(db[phone_number]['code']) == access_code:
                 st.session_state['logged_in'] = True
                 st.session_state['current_user'] = phone_number
                 st.rerun()
-            else:
-                st.error("Login Failed. Number or Code is incorrect.")
+            else: st.error("Incorrect details.")
 
     with tab2:
-        st.markdown("### NEW REGISTRATION")
-        st.write("Create a free account. You will need to purchase credits inside to use the Matrix.")
-        reg_name = st.text_input("DISPLAY NAME", placeholder="What should we call you?")
-        reg_phone = st.text_input("PHONE NUMBER", placeholder="This will be your Login ID")
-        reg_code = st.text_input("CREATE ACCESS CODE", type="password", placeholder="Create a password")
-        
-        if st.button("Register Free Account"):
-            if not reg_name or not reg_phone or not reg_code:
-                st.error("Please fill in all fields.")
-            elif reg_phone in db:
-                st.error("An account with this phone number already exists.")
+        reg_name = st.text_input("FULL NAME", key="r_n")
+        reg_phone = st.text_input("PHONE NUMBER", key="r_p")
+        reg_code = st.text_input("CREATE CODE", type="password", key="r_c")
+        if st.button("CREATE ACCOUNT"):
+            if not reg_name or not reg_phone or not reg_code: st.error("Fill all fields.")
+            elif reg_phone in db: st.error("Account exists.")
             else:
-                # Write to Google Sheets permanently
                 sheet.append_row([reg_phone, reg_code, reg_name, 0])
-                st.success("Account created! Please switch to the 'Existing Member' tab to log in.")
+                st.success("Success! Now go to the Login tab.")
 
-# 5. APP ROUTING & UI
+# 5. MAIN APP INTERFACE
 if st.session_state['logged_in']:
     db = get_database()
     user_id = st.session_state['current_user']
-    
-    # Safety check in case account was deleted
     if user_id not in db:
         st.session_state['logged_in'] = False
         st.rerun()
-        
     user_data = db[user_id]
     
+    # Header with Live Clock
+    now = datetime.now().strftime("%A, %d %b %Y | %H:%M:%S")
+    st.markdown(f'<p class="live-clock">{now}</p>', unsafe_allow_html=True)
+
     with st.sidebar:
-        st.markdown(f"### Welcome, {user_data['name']}")
-        st.write(f"**Credits: {user_data['credits']}**")
+        st.markdown(f"### VIP: {user_data['name']}")
+        st.markdown(f"## Credits: **{user_data['credits']}**")
         st.divider()
-        page = st.radio("NAVIGATION", ["Matrix Engine", "My Account", "Admin Panel"] if user_id == "admin" else ["Matrix Engine", "My Account"])
-        st.divider()
-        if st.button("Log Out"):
+        nav = ["Matrix Engine", "My Account"]
+        if user_id == "admin": nav.append("Admin Panel")
+        page = st.radio("MENU", nav)
+        if st.button("LOGOUT"):
             st.session_state['logged_in'] = False
-            st.session_state['current_user'] = ""
             st.rerun()
 
     if page == "Matrix Engine":
-        st.title("LUCKY NUMBER PRO")
-        st.write("Live Data Frequency Engine")
-
+        st.title("PRO MATRIX ENGINE")
+        
         @st.cache_data(ttl=3600)
         def get_live_data():
             try:
                 r = requests.get("https://www.4dmoon.com/", headers={'User-Agent': 'Mozilla/5.0'}, timeout=5)
-                nums = re.findall(r'\b\d{4}\b', BeautifulSoup(r.text, 'html.parser').get_text())
-                return "".join(nums[:120])
+                return "".join(re.findall(r'\b\d{4}\b', BeautifulSoup(r.text, 'html.parser').get_text())[:120])
             except: return ""
 
-        if st.button("GENERATE MASTER ANALYSIS (1 Credit)"):
+        if st.button("GENERATE MASTER ANALYSIS"):
             if user_data['credits'] > 0:
-                with st.spinner("Processing..."):
-                    # Deduct Credit from Google Sheet
-                    new_credit_balance = user_data['credits'] - 1
-                    sheet.update_cell(user_data['row'], 4, new_credit_balance)
+                with st.spinner("CALIBRATING..."):
+                    st.balloons()
+                    new_bal = user_data['credits'] - 1
+                    sheet.update_cell(user_data['row'], 4, new_bal)
                     
                     live = get_live_data()
-                    final_pool = (VAULT_4D * 4) + live
-                    counts = collections.Counter(final_pool)
-                    ranked = [d for d, _ in counts.most_common()]
+                    ranked = [d for d, _ in collections.Counter((VAULT_4D * 4) + live).most_common()]
                     
-                    st.success(f"Generation Complete! Credits remaining: {new_credit_balance}")
+                    st.success(f"Generated! Balance: {new_bal}")
                     
-                    now = datetime.now().strftime("%Y-%m-%d %H:%M")
-                    report = f"LUCKY NUMBER PRO REPORT\n{now}\nUser: {user_data['name']}\n\n"
-                    
-                    st.markdown("### 10 Calibrated 4D Lines")
                     c = st.columns(2)
                     for i in range(10):
                         line = random.sample(ranked[:4], 3) + random.sample(ranked[4:8], 1)
                         random.shuffle(line)
-                        res = "".join(line)
-                        report += f"4D-{i+1}: {res}\n"
-                        with c[i % 2]: st.metric(label=f"Analysis {i+1}", value=res)
-
-                    st.divider()
-                    st.markdown("### 6 Supreme 6/58 Matrix Lines")
-                    l_pool = [b for d in VAULT_658 for b in d]
-                    l_counts = collections.Counter(l_pool)
-                    l_hot = [b for b, _ in l_counts.most_common(12)]
-                    
-                    lc = st.columns(2)
-                    for i in range(6):
-                        line = sorted(random.sample(l_hot, 6))
-                        res_lotto = " ".join(f"{n:02d}" for n in line)
-                        report += f"L658-{i+1}: {res_lotto}\n"
-                        with lc[i % 2]: st.info(res_lotto)
-                        
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    st.download_button(
-                        label="📥 DOWNLOAD REPORT (.TXT)",
-                        data=report,
-                        file_name=f"Lucky_Matrix_{datetime.now().strftime('%d_%m')}.txt",
-                        mime="text/plain"
-                    )
-            else:
-                st.error("Insufficient Credits! Please go to 'My Account' to top up.")
+                        with c[i % 2]: st.metric(f"Analysis {i+1}", "".join(line))
+            else: st.error("0 Credits. Please Top Up.")
 
     elif page == "My Account":
-        st.title("ACCOUNT & WALLET")
-        col1, col2 = st.columns(2)
-        with col1: st.info(f"**CREDITS**\n# {user_data['credits']}")
-        with col2: st.info(f"**PHONE ID**\n# {user_id}")
-            
+        st.title("ACCOUNT STATUS")
+        st.info(f"**CREDITS REMAINING:** {user_data['credits']}")
         st.divider()
-        st.markdown("### TOP UP WALLET")
-        st.link_button("💰 BUY 50 CREDITS (RM 10)", "https://buy.stripe.com/28E9AT5qh3oX9w0anIcbC02")
-        st.caption("Note: After payment, please WhatsApp your receipt to the Admin to have credits loaded into your account.")
-        
+        st.markdown("### TOP UP CREDITS")
+        st.link_button("💰 RM 10 for 50 CREDITS", "https://buy.stripe.com/28E9AT5qh3oX9w0anIcbC02")
+        st.caption("WhatsApp payment screenshot to Admin for activation.")
+
     elif page == "Admin Panel":
-        st.title("⚙️ SYSTEM ADMIN PANEL")
-        
-        st.markdown("### ADD CREDITS TO USER")
-        target_phone = st.text_input("User Phone Number")
-        credits_to_add = st.number_input("Credits to Add", min_value=1, value=50)
-        if st.button("Add Credits"):
-            if target_phone in db:
-                current_credits = db[target_phone]['credits']
-                new_total = current_credits + credits_to_add
-                sheet.update_cell(db[target_phone]['row'], 4, new_total)
-                st.success(f"Added {credits_to_add} credits to {target_phone}! New Total: {new_total}")
-            else: st.error("User not found in Database.")
-            
-        st.divider()
-        st.markdown("### ACTIVE USER DATABASE")
-        st.write("Live feed from Google Sheets:")
+        st.title("SYSTEM ADMIN")
+        t_phone = st.text_input("Target Phone")
+        t_creds = st.number_input("Credits to Add", min_value=1, value=50)
+        if st.button("REFRESH USER WALLET"):
+            if t_phone in db:
+                sheet.update_cell(db[t_phone]['row'], 4, db[t_phone]['credits'] + t_creds)
+                st.success("Wallet Updated!")
+            else: st.error("User Not Found")
         st.dataframe(db)
 
-else:
-    show_login_page()
+else: show_login_page()
 
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.caption("© 2026 LUCKY NUMBER ANALYTICS.")
