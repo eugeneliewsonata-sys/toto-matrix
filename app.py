@@ -21,6 +21,8 @@ st.markdown("""
     [data-testid="stMetricLabel"] { color: #666666 !important; }
     .stInfo { background-color: #f2f2f2 !important; border: 1px solid #000000 !important; color: #000000 !important; font-weight: bold;}
     hr { border-top: 1px solid #000000 !important; }
+    .stTabs [data-baseweb="tab-list"] { gap: 24px; }
+    .stTabs [data-baseweb="tab"] { height: 50px; white-space: pre-wrap; background-color: #ffffff; border-radius: 4px; color: #000000; font-weight: bold;}
     </style>
     """, unsafe_allow_html=True)
 
@@ -32,12 +34,10 @@ VAULT_658 = [
     [5, 6, 15, 22, 40, 53], [4, 19, 29, 39, 50, 54]
 ]
 
-# 3. THE VIRTUAL DATABASE (Session State)
-# In a real commercial app, this connects to Firebase. For now, it lives in memory.
+# 3. THE VIRTUAL DATABASE
 if 'db' not in st.session_state:
     st.session_state['db'] = {
-        "admin": {"code": "eugene2026", "name": "System Admin", "credits": 9999},
-        "0123456789": {"code": "VIP-1234", "name": "Demo User", "credits": 5}
+        "admin": {"code": "eugene2026", "name": "System Admin", "credits": 9999}
     }
 
 if 'logged_in' not in st.session_state:
@@ -47,47 +47,55 @@ if 'logged_in' not in st.session_state:
 def show_login_page():
     st.markdown("<br>", unsafe_allow_html=True)
     st.title("LUCKY NUMBER PRO")
-    st.write("Secure Member Portal")
+    st.write("Matrix Analytics Platform")
     
-    phone_number = st.text_input("PHONE NUMBER", placeholder="e.g., 0123456789")
-    access_code = st.text_input("ACCESS CODE", type="password")
+    tab1, tab2 = st.tabs(["🔐 EXISTING MEMBER", "📝 CREATE ACCOUNT"])
     
-    if st.button("Secure Login"):
-        if phone_number in st.session_state['db'] and st.session_state['db'][phone_number]['code'] == access_code:
-            st.session_state['logged_in'] = True
-            st.session_state['current_user'] = phone_number
-            st.rerun()
-        else:
-            st.error("Login Failed. Number or Code is incorrect.")
+    with tab1:
+        st.markdown("### ACCOUNT LOGIN")
+        phone_number = st.text_input("PHONE NUMBER", placeholder="e.g., 0123456789", key="login_phone")
+        access_code = st.text_input("ACCESS CODE", type="password", key="login_code")
+        
+        if st.button("Secure Login"):
+            if phone_number in st.session_state['db'] and st.session_state['db'][phone_number]['code'] == access_code:
+                st.session_state['logged_in'] = True
+                st.session_state['current_user'] = phone_number
+                st.rerun()
+            else:
+                st.error("Login Failed. Number or Code is incorrect.")
 
-    st.divider()
-    st.markdown("### BECOME A VIP MEMBER")
-    st.write("Gain access to the Master Matrix. Account setup is manual after payment.")
-    st.link_button("PURCHASE STARTER PACK (RM 10 = 50 CREDITS)", "https://buy.stripe.com/7sY8wPdWN7FdeQkanIcbC00")
+    with tab2:
+        st.markdown("### NEW REGISTRATION")
+        st.write("Create a free account. You will need to purchase credits inside to use the Matrix.")
+        reg_name = st.text_input("DISPLAY NAME", placeholder="What should we call you?")
+        reg_phone = st.text_input("PHONE NUMBER", placeholder="This will be your Login ID")
+        reg_code = st.text_input("CREATE ACCESS CODE", type="password", placeholder="Create a password")
+        
+        if st.button("Register Free Account"):
+            if not reg_name or not reg_phone or not reg_code:
+                st.error("Please fill in all fields.")
+            elif reg_phone in st.session_state['db']:
+                st.error("An account with this phone number already exists.")
+            else:
+                st.session_state['db'][reg_phone] = {"code": reg_code, "name": reg_name, "credits": 0}
+                st.success("Account created! Please switch to the 'Existing Member' tab to log in.")
 
 # 4. APP ROUTING & UI
 if st.session_state['logged_in']:
     user_id = st.session_state['current_user']
     user_data = st.session_state['db'][user_id]
     
-    # NAVIGATION SIDEBAR
     with st.sidebar:
         st.markdown(f"### Welcome, {user_data['name']}")
-        st.write(f"**Credits Left: {user_data['credits']}**")
+        st.write(f"**Credits: {user_data['credits']}**")
         st.divider()
-        page = st.radio("NAVIGATION MENU", ["Matrix Engine", "My Account"])
-        
-        # Admin gets an extra tab
-        if user_id == "admin":
-            page = st.radio("ADMIN MENU", ["Matrix Engine", "My Account", "Admin Panel"])
-            
+        page = st.radio("NAVIGATION", ["Matrix Engine", "My Account", "Admin Panel"] if user_id == "admin" else ["Matrix Engine", "My Account"])
         st.divider()
         if st.button("Log Out"):
             st.session_state['logged_in'] = False
             st.session_state['current_user'] = ""
             st.rerun()
 
-    # PAGE 1: THE MATRIX ENGINE
     if page == "Matrix Engine":
         st.title("LUCKY NUMBER PRO")
         st.write("Live Data Frequency Engine")
@@ -100,12 +108,10 @@ if st.session_state['logged_in']:
                 return "".join(nums[:120])
             except: return ""
 
-        if st.button("GENERATE MASTER ANALYSIS (Cost: 1 Credit)"):
+        if st.button("GENERATE MASTER ANALYSIS (1 Credit)"):
             if user_data['credits'] > 0:
                 with st.spinner("Processing..."):
-                    # Deduct Credit
                     st.session_state['db'][user_id]['credits'] -= 1
-                    
                     live = get_live_data()
                     final_pool = (VAULT_4D * 4) + live
                     counts = collections.Counter(final_pool)
@@ -113,62 +119,66 @@ if st.session_state['logged_in']:
                     
                     st.success(f"Generation Complete! Credits remaining: {st.session_state['db'][user_id]['credits']}")
                     
+                    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+                    report = f"LUCKY NUMBER PRO REPORT\n{now}\nUser: {user_data['name']}\n\n"
+                    
                     st.markdown("### 10 Calibrated 4D Lines")
                     c = st.columns(2)
                     for i in range(10):
                         line = random.sample(ranked[:4], 3) + random.sample(ranked[4:8], 1)
                         random.shuffle(line)
-                        with c[i % 2]: st.metric(label=f"Analysis {i+1}", value="".join(line))
-            else:
-                st.error("Insufficient Credits! Please top up in the 'My Account' tab.")
+                        res = "".join(line)
+                        report += f"4D-{i+1}: {res}\n"
+                        with c[i % 2]: st.metric(label=f"Analysis {i+1}", value=res)
 
-    # PAGE 2: MY ACCOUNT
+                    st.divider()
+                    st.markdown("### 6 Supreme 6/58 Matrix Lines")
+                    l_pool = [b for d in VAULT_658 for b in d]
+                    l_counts = collections.Counter(l_pool)
+                    l_hot = [b for b, _ in l_counts.most_common(12)]
+                    
+                    lc = st.columns(2)
+                    for i in range(6):
+                        line = sorted(random.sample(l_hot, 6))
+                        res_lotto = " ".join(f"{n:02d}" for n in line)
+                        report += f"L658-{i+1}: {res_lotto}\n"
+                        with lc[i % 2]: st.info(res_lotto)
+                        
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    st.download_button(
+                        label="📥 DOWNLOAD REPORT (.TXT)",
+                        data=report,
+                        file_name=f"Lucky_Matrix_{datetime.now().strftime('%d_%m')}.txt",
+                        mime="text/plain"
+                    )
+            else:
+                st.error("Insufficient Credits! Please go to 'My Account' to top up.")
+
     elif page == "My Account":
         st.title("ACCOUNT & WALLET")
-        st.write("Manage your profile and credits.")
-        
         col1, col2 = st.columns(2)
-        with col1:
-            st.info(f"**CREDIT BALANCE**\n# {user_data['credits']}")
-        with col2:
-            st.info(f"**PHONE ID**\n# {user_id}")
+        with col1: st.info(f"**CREDITS**\n# {user_data['credits']}")
+        with col2: st.info(f"**PHONE ID**\n# {user_id}")
             
         st.divider()
         st.markdown("### TOP UP WALLET")
-        st.write("Purchase more credits to continue using the engine.")
-        # Make sure you create different Stripe links for different credit packs!
-        st.link_button("💰 TOP UP 50 CREDITS (RM 10)", "https://buy.stripe.com/7sY8wPdWN7FdeQkanIcbC00")
-        st.link_button("💎 TOP UP 200 CREDITS (RM 30)", "https://buy.stripe.com/7sY8wPdWN7FdeQkanIcbC00")
+        # YOUR NEW STRIPE LINK IS ACTIVE HERE
+        st.link_button("💰 BUY 50 CREDITS (RM 10)", "https://buy.stripe.com/28E9AT5qh3oX9w0anIcbC02")
         
-        st.divider()
-        st.markdown("### EDIT PROFILE")
-        new_name = st.text_input("Display Name", value=user_data['name'])
-        new_password = st.text_input("Change Access Code", value=user_data['code'], type="password")
-        if st.button("Save Changes"):
-            st.session_state['db'][user_id]['name'] = new_name
-            st.session_state['db'][user_id]['code'] = new_password
-            st.success("Profile Updated Successfully!")
-
-    # PAGE 3: ADMIN PANEL (Only visible to admin)
+        st.caption("Note: After payment, please WhatsApp your receipt to the Admin to have credits loaded into your account.")
+        
     elif page == "Admin Panel":
         st.title("⚙️ SYSTEM ADMIN PANEL")
-        st.write("Add new paying users and issue credits.")
+        st.write("Current Database:", st.session_state['db'])
         
-        st.markdown("### REGISTER NEW USER")
-        new_phone = st.text_input("User Phone Number (ID)")
-        new_code = st.text_input("Temporary Access Code")
-        starting_credits = st.number_input("Starting Credits", min_value=0, value=50)
-        
-        if st.button("Create User Account"):
-            if new_phone and new_code:
-                st.session_state['db'][new_phone] = {"code": new_code, "name": "VIP User", "credits": starting_credits}
-                st.success(f"User {new_phone} added with {starting_credits} credits!")
-            else:
-                st.error("Please fill in both Phone and Code.")
-                
-        st.divider()
-        st.markdown("### ACTIVE USER DATABASE")
-        st.write(st.session_state['db'])
+        st.markdown("### ADD CREDITS TO USER")
+        target_phone = st.text_input("User Phone Number")
+        credits_to_add = st.number_input("Credits to Add", min_value=1, value=50)
+        if st.button("Add Credits"):
+            if target_phone in st.session_state['db']:
+                st.session_state['db'][target_phone]['credits'] += credits_to_add
+                st.success(f"Added {credits_to_add} credits to {target_phone}!")
+            else: st.error("User not found.")
 
 else:
     show_login_page()
