@@ -5,7 +5,7 @@ import collections
 import random
 import re
 
-# 1. INK & PAPER BRANDING (Black & White)
+# 1. INK & PAPER BRANDING (Strict Black & White)
 st.set_page_config(page_title="Lucky Number Pro", page_icon="📈", layout="centered")
 
 st.markdown("""
@@ -60,7 +60,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 2. THE HISTORICAL VAULT (Locked-in Data)
+# 2. THE HISTORICAL VAULT (Your fed data remains here)
 VAULT_4D = "80474206710328685044035084831805444041755938586455209168453600187307197177718803120963611044"
 VAULT_658 = [
     [18, 19, 29, 30, 36, 54], [2, 16, 20, 33, 34, 49], [8, 16, 22, 33, 53, 56],
@@ -76,7 +76,7 @@ def show_login_page():
     st.title("LUCKY NUMBER PRO")
     st.markdown("Matrix Analytics | Secure Member Access")
     
-    # Login
+    # Login Section
     password = st.text_input("ACCESS KEY", type="password")
     if st.button("Unlock Engine"):
         if password == "eugene2026":
@@ -89,7 +89,7 @@ def show_login_page():
     st.divider()
     st.markdown("### PRO MEMBERSHIP")
     st.markdown("**RM 9.90 / MONTH**")
-    st.write("Full access to historical frequency vault and live market scraping.")
+    st.write("Direct integration with 4DMoon live results and historical frequency vault.")
     
     st.link_button("ACTIVATE SUBSCRIPTION", "https://buy.stripe.com/7sY8wPdWN7FdeQkanIcbC00")
 
@@ -105,14 +105,16 @@ if st.session_state['logged_in']:
     @st.cache_data(ttl=3600)
     def get_live_data():
         try:
-            url = "https://check4d.com/"
+            # EXCLUSIVE CONNECTION: 4DMoon
+            url = "https://www.4dmoon.com/"
             r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=5)
+            # Scrape 4-digit numbers from 4DMoon
             nums = re.findall(r'\b\d{4}\b', BeautifulSoup(r.text, 'html.parser').get_text())
-            return "".join(nums[:100])
+            return "".join(nums[:120])
         except: return ""
 
     if st.button("GENERATE MASTER ANALYSIS"):
-        with st.spinner("Analyzing..."):
+        with st.spinner("Syncing with 4DMoon Database..."):
             live = get_live_data()
             pool = live + VAULT_4D
             counts = collections.Counter(pool)
