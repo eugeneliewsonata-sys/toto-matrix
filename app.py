@@ -53,7 +53,7 @@ LANG_DICT = {
         "total_won": "TOTAL WINNINGS",
         "share_wa": "📲 SHARE TO WHATSAPP",
         "share_msg": "🔥 My HENG ONG HUAT 4D Picks today:",
-        "wa_disclaimer": "⚠️ Disclaimer: This is purely a statistical prediction. Do not fully trust it. Please buy at your own risk and play responsibly!"
+        "wa_disclaimer": "⚠️ Disclaimer: This is a statistical prediction. Buy at your own risk!"
     },
     "中文": {
         "title": "兴旺发专业版",
@@ -92,7 +92,7 @@ LANG_DICT = {
         "total_won": "总赢取奖金",
         "share_wa": "📲 发送至 WhatsApp",
         "share_msg": "🔥 我今天的兴旺发 4D 心水字:",
-        "wa_disclaimer": "⚠️ 免责声明：这仅是统计预测，请勿完全依赖。买字有风险，请自行评估与承担责任！"
+        "wa_disclaimer": "⚠️ 免责声明：这仅是统计预测。买字有风险，请自行承担责任！"
     }
 }
 
@@ -124,7 +124,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 3. STATIC VAULT DATA (Base Brain - INCLUDES SATURDAY RESULTS)
+# 3. STATIC VAULT DATA (Base Brain)
 VAULT_4D = "8047420671032868504403508483180544404175593858645520916845360018730719717771880312096361104499662669456713036077238930766909859852679930098396204355885760966059304019958937628787253607"
 VAULT_658 = [[18, 19, 29, 30, 36, 54], [2, 16, 20, 33, 34, 49], [8, 16, 22, 33, 53, 56], [4, 5, 13, 17, 22, 54], [7, 10, 18, 23, 26, 41], [26, 34, 39, 46, 47, 49], [5, 6, 15, 22, 40, 53], [4, 19, 29, 39, 50, 54]]
 VAULT_655 = [[5, 12, 28, 33, 41, 52], [2, 18, 24, 39, 45, 55], [7, 14, 21, 30, 48, 51], [9, 13, 27, 35, 42, 53], [4, 11, 22, 36, 49, 54]]
@@ -275,16 +275,17 @@ if st.session_state['logged_in']:
                         with c4[i%2]:
                             st.metric(label=f"Line {i+1}", value=f_line, delta=f"{p_weight}% Data Match", delta_color="normal")
                     
+                    # --- WHATSAPP SHARE BUTTON (FIXED ENCODING) ---
                     st.divider()
                     wa_message = f"{L['share_msg']}\n\n" + "\n".join(generated_4d_wa) + f"\n\n{L['wa_disclaimer']}\n\nLet's HUAT together! 🧧"
-                    wa_url = f"https://wa.me/?text={urllib.parse.quote(wa_message)}"
+                    wa_url = f"https://api.whatsapp.com/send?text={urllib.parse.quote(wa_message)}"
                     st.link_button(L['share_wa'], wa_url)
                             
                     def get_hot(v_list, count=12):
                         all_n = [n for sub in v_list for n in sub]
                         return [n for n, _ in collections.Counter(all_n).most_common(count)]
 
-                    # --- UPDATED JACKPOT UI TO MATCH 4D (st.metric) ---
+                    # --- SUPREME / POWER / STAR NOW USE RED METRICS LIKE 4D ---
                     st.divider()
                     st.markdown(f"### {L['lines_58']}")
                     h58 = get_hot(VAULT_658)
