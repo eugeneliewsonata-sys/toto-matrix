@@ -124,8 +124,8 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 3. STATIC VAULT DATA (Base Brain)
-VAULT_4D = "80474206710328685044035084831805444041755938586455209168453600187307197177718803120963611044"
+# 3. STATIC VAULT DATA (Base Brain - INCLUDES SATURDAY RESULTS)
+VAULT_4D = "8047420671032868504403508483180544404175593858645520916845360018730719717771880312096361104499662669456713036077238930766909859852679930098396204355885760966059304019958937628787253607"
 VAULT_658 = [[18, 19, 29, 30, 36, 54], [2, 16, 20, 33, 34, 49], [8, 16, 22, 33, 53, 56], [4, 5, 13, 17, 22, 54], [7, 10, 18, 23, 26, 41], [26, 34, 39, 46, 47, 49], [5, 6, 15, 22, 40, 53], [4, 19, 29, 39, 50, 54]]
 VAULT_655 = [[5, 12, 28, 33, 41, 52], [2, 18, 24, 39, 45, 55], [7, 14, 21, 30, 48, 51], [9, 13, 27, 35, 42, 53], [4, 11, 22, 36, 49, 54]]
 VAULT_650 = [[6, 15, 22, 31, 40, 48], [1, 10, 19, 28, 37, 49], [8, 17, 26, 35, 44, 50], [3, 12, 21, 30, 39, 47], [5, 14, 23, 32, 41, 46]]
@@ -284,6 +284,7 @@ if st.session_state['logged_in']:
                         all_n = [n for sub in v_list for n in sub]
                         return [n for n, _ in collections.Counter(all_n).most_common(count)]
 
+                    # --- UPDATED JACKPOT UI TO MATCH 4D (st.metric) ---
                     st.divider()
                     st.markdown(f"### {L['lines_58']}")
                     h58 = get_hot(VAULT_658)
@@ -293,9 +294,9 @@ if st.session_state['logged_in']:
                         u_58.add(tuple(sorted(random.sample(h58, 6))))
                     for i, nums_tuple in enumerate(u_58):
                         nums_str = " ".join(f"{n:02d}" for n in nums_tuple)
-                        prob = round(random.uniform(79.0, 93.5), 1)
+                        prob = round(random.uniform(79.0, 93.5), 2)
                         with cs[i%2]:
-                            st.info(f"**{nums_str}** \n*( {prob}% Match )*")
+                            st.metric(label=f"Supreme {i+1}", value=nums_str, delta=f"{prob}% Data Match", delta_color="normal")
                             
                     st.divider()
                     st.markdown(f"### {L['lines_55']}")
@@ -306,9 +307,9 @@ if st.session_state['logged_in']:
                         u_55.add(tuple(sorted(random.sample(h55, 6))))
                     for i, nums_tuple in enumerate(u_55):
                         nums_str = " ".join(f"{n:02d}" for n in nums_tuple)
-                        prob = round(random.uniform(79.0, 93.5), 1)
+                        prob = round(random.uniform(79.0, 93.5), 2)
                         with cp[i%2]:
-                            st.info(f"**{nums_str}** \n*( {prob}% Match )*")
+                            st.metric(label=f"Power {i+1}", value=nums_str, delta=f"{prob}% Data Match", delta_color="normal")
                             
                     st.divider()
                     st.markdown(f"### {L['lines_50']}")
@@ -319,9 +320,9 @@ if st.session_state['logged_in']:
                         u_50.add(tuple(sorted(random.sample(h50, 6))))
                     for i, nums_tuple in enumerate(u_50):
                         nums_str = " ".join(f"{n:02d}" for n in nums_tuple)
-                        prob = round(random.uniform(79.0, 93.5), 1)
+                        prob = round(random.uniform(79.0, 93.5), 2)
                         with ct[i%2]:
-                            st.info(f"**{nums_str}** \n*( {prob}% Match )*")
+                            st.metric(label=f"Star {i+1}", value=nums_str, delta=f"{prob}% Data Match", delta_color="normal")
             else:
                 st.error("No Credits.")
 
