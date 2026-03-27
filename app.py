@@ -33,6 +33,7 @@ LANG_DICT = {
         "calc": "Win Calculator",
         "account": "My Account", 
         "admin": "Admin Panel",
+        "vip_menu": "👑 VIP Exclusive",
         "btn_gen": "GENERATE MASTER ANALYSIS", 
         "calibrating": "CALIBRATING DATA...",
         "generated": "Generated!", 
@@ -43,7 +44,7 @@ LANG_DICT = {
         "lines_50": "6 Star 6/50 Matrix Lines",
         "topup": "TOP UP CREDITS", 
         "buy_btn": "💰 BUY 50 CREDITS (RM 10)",
-        "whatsapp": "WhatsApp receipt to Admin.", 
+        "whatsapp": "WhatsApp receipt to Admin to unlock.", 
         "logout": "LOGOUT",
         "prize_cat": "Prize Category", 
         "big_bet": "Big Bet (RM)",
@@ -53,7 +54,12 @@ LANG_DICT = {
         "total_won": "TOTAL WINNINGS",
         "share_wa": "📲 SHARE TO WHATSAPP",
         "share_msg": "🔥 My HENG ONG HUAT 4D Picks today:",
-        "wa_disclaimer": "⚠️ Disclaimer: This is a statistical prediction. Buy at your own risk!"
+        "wa_disclaimer": "⚠️ Disclaimer: This is a statistical prediction. Buy at your own risk!",
+        "vip_title": "👑 VIP EXCLUSIVE NUMBERS",
+        "vip_desc": "Get the top 10 hand-picked Master Matrix lines with the highest mathematical probability.",
+        "vip_buy": "💰 BUY 10 EXCLUSIVE NUMBERS (RM 50)",
+        "vip_pass": "Enter VIP Passcode from Admin:",
+        "vip_btn_unlock": "UNLOCK NUMBERS"
     },
     "中文": {
         "title": "兴旺发专业版",
@@ -72,6 +78,7 @@ LANG_DICT = {
         "calc": "奖金计算器",
         "account": "我的账户", 
         "admin": "管理后台",
+        "vip_menu": "👑 VIP 独家预测",
         "btn_gen": "开始大师级分析", 
         "calibrating": "正在校准数据...",
         "generated": "生成成功！", 
@@ -82,7 +89,7 @@ LANG_DICT = {
         "lines_50": "6组 Star 6/50 矩阵",
         "topup": "充值积分", 
         "buy_btn": "💰 购买 50 积分 (RM 10)",
-        "whatsapp": "请发送收据给管理员。", 
+        "whatsapp": "请发送收据给管理员进行解锁。", 
         "logout": "退出登录",
         "prize_cat": "中奖类别", 
         "big_bet": "大万投注 (RM)",
@@ -92,7 +99,12 @@ LANG_DICT = {
         "total_won": "总赢取奖金",
         "share_wa": "📲 发送至 WhatsApp",
         "share_msg": "🔥 我今天的兴旺发 4D 心水字:",
-        "wa_disclaimer": "⚠️ 免责声明：这仅是统计预测。买字有风险，请自行承担责任！"
+        "wa_disclaimer": "⚠️ 免责声明：这仅是统计预测。买字有风险，请自行承担责任！",
+        "vip_title": "👑 VIP 大师专属预测",
+        "vip_desc": "获取10组经过最高数学概率筛选的独家矩阵心水字。",
+        "vip_buy": "💰 购买 10 组独家号码 (RM 50)",
+        "vip_pass": "输入管理员提供的 VIP 密码:",
+        "vip_btn_unlock": "解锁号码"
     }
 }
 
@@ -121,18 +133,23 @@ st.markdown("""
     
     [data-testid="stMetricValue"] { color: #FF0000 !important; font-weight: 900 !important; }
     .live-clock { text-align: right; font-weight: 700; color: #FF0000 !important; }
+    .vip-box { background-color: #FFF0F0; border: 2px solid #FF0000; padding: 20px; border-radius: 10px; text-align: center;}
     </style>
     """, unsafe_allow_html=True)
 
-# 3. STATIC VAULT DATA (Base Brain)
-VAULT_4D = "8047420671032868504403508483180544404175593858645520916845360018730719717771880312096361104499662669456713036077238930766909859852679930098396204355885760966059304019958937628787253607"
+# 3. STATIC VAULT DATA (Base Brain Updated with Wednesday 25/03/2026 Results)
+VAULT_4D = "804742067103286850440350848318054440417559385864552091684536001873071971777188031209636110449966266945671303607723893076690985985267993009839620435588576096605930401995893762878725360786668159018587024804533890424548553723587768971374574997571246806521958263911898855525249523"
 VAULT_658 = [[18, 19, 29, 30, 36, 54], [2, 16, 20, 33, 34, 49], [8, 16, 22, 33, 53, 56], [4, 5, 13, 17, 22, 54], [7, 10, 18, 23, 26, 41], [26, 34, 39, 46, 47, 49], [5, 6, 15, 22, 40, 53], [4, 19, 29, 39, 50, 54]]
 VAULT_655 = [[5, 12, 28, 33, 41, 52], [2, 18, 24, 39, 45, 55], [7, 14, 21, 30, 48, 51], [9, 13, 27, 35, 42, 53], [4, 11, 22, 36, 49, 54]]
 VAULT_650 = [[6, 15, 22, 31, 40, 48], [1, 10, 19, 28, 37, 49], [8, 17, 26, 35, 44, 50], [3, 12, 21, 30, 39, 47], [5, 14, 23, 32, 41, 46]]
 
-# LIVE VAULT MEMORY
+# LIVE VAULT & VIP STATE
 if 'live_vault_4d' not in st.session_state:
     st.session_state['live_vault_4d'] = VAULT_4D
+if 'vip_numbers' not in st.session_state:
+    st.session_state['vip_numbers'] = "8376\n8668\n1558\n8156\n3377\n6881\n6738\n7683\n3789\n1856"
+if 'vip_passcode' not in st.session_state:
+    st.session_state['vip_passcode'] = "HUAT88"
 
 # 4. DATABASE
 @st.cache_resource
@@ -224,7 +241,7 @@ if st.session_state['logged_in']:
         st.markdown(f"### {L['vip']}: {user_data['name']}")
         st.markdown(f"## {L['credits']}: **{user_data['credits']}**")
         st.divider()
-        nav_opts = [L['engine'], L['calc'], L['account']]
+        nav_opts = [L['engine'], L['vip_menu'], L['calc'], L['account']]
         if user_id == "admin":
             nav_opts.append(L['admin'])
         page = st.radio(L['menu'], nav_opts)
@@ -275,7 +292,6 @@ if st.session_state['logged_in']:
                         with c4[i%2]:
                             st.metric(label=f"Line {i+1}", value=f_line, delta=f"{p_weight}% Data Match", delta_color="normal")
                     
-                    # --- WHATSAPP SHARE BUTTON (FIXED ENCODING) ---
                     st.divider()
                     wa_message = f"{L['share_msg']}\n\n" + "\n".join(generated_4d_wa) + f"\n\n{L['wa_disclaimer']}\n\nLet's HUAT together! 🧧"
                     wa_url = f"https://api.whatsapp.com/send?text={urllib.parse.quote(wa_message)}"
@@ -285,7 +301,6 @@ if st.session_state['logged_in']:
                         all_n = [n for sub in v_list for n in sub]
                         return [n for n, _ in collections.Counter(all_n).most_common(count)]
 
-                    # --- SUPREME / POWER / STAR NOW USE RED METRICS LIKE 4D ---
                     st.divider()
                     st.markdown(f"### {L['lines_58']}")
                     h58 = get_hot(VAULT_658)
@@ -326,6 +341,31 @@ if st.session_state['logged_in']:
                             st.metric(label=f"Star {i+1}", value=nums_str, delta=f"{prob}% Data Match", delta_color="normal")
             else:
                 st.error("No Credits.")
+
+    elif page == L['vip_menu']:
+        st.title(L['vip_title'])
+        st.write(L['vip_desc'])
+        
+        st.link_button(L['vip_buy'], "https://buy.stripe.com/dRmbJ1dWNcZxaA49jEcbC03")
+        st.caption(L['whatsapp'])
+        st.divider()
+        
+        st.markdown("### Unlock Matrix")
+        vp_input = st.text_input(L['vip_pass'], type="password")
+        if st.button(L['vip_btn_unlock']):
+            if vp_input == st.session_state['vip_passcode']:
+                st.balloons()
+                st.success("VIP Unlocked Successfully!")
+                
+                v_nums = [n.strip() for n in st.session_state['vip_numbers'].split('\n') if n.strip()]
+                st.markdown('<div class="vip-box">', unsafe_allow_html=True)
+                cols = st.columns(2)
+                for i, num in enumerate(v_nums):
+                    with cols[i % 2]:
+                        st.metric(label=f"VIP Line {i+1}", value=num, delta="Guaranteed Structure", delta_color="normal")
+                st.markdown('</div>', unsafe_allow_html=True)
+            else:
+                st.error("Invalid VIP Passcode.")
 
     elif page == L['calc']:
         st.title(L['calc'])
@@ -372,7 +412,7 @@ if st.session_state['logged_in']:
 
     elif page == L['admin']:
         st.title("SYSTEM ADMIN")
-        tab_users, tab_vault = st.tabs(["👥 Manage Users", "🧠 Data Vault"])
+        tab_users, tab_vault, tab_vip = st.tabs(["👥 Manage Users", "🧠 Data Vault", "👑 VIP Management"])
         
         with tab_users:
             tp = st.text_input("Phone ID")
@@ -398,6 +438,16 @@ if st.session_state['logged_in']:
                     st.success(f"🔥 Successfully injected {added_count} new 4D combinations into the Matrix!")
                 else:
                     st.error("No valid 4-digit numbers detected. Try again.")
+                    
+        with tab_vip:
+            st.markdown("### 👑 Update VIP Numbers")
+            new_vip_data = st.text_area("Enter 10 VIP Numbers (one per line):", st.session_state['vip_numbers'], height=250)
+            new_passcode = st.text_input("Set VIP Passcode (Give this to users after they pay):", st.session_state['vip_passcode'])
+            
+            if st.button("SAVE VIP SETTINGS"):
+                st.session_state['vip_numbers'] = new_vip_data
+                st.session_state['vip_passcode'] = new_passcode
+                st.success("VIP System successfully updated!")
 
 else:
     show_login_page()
