@@ -22,9 +22,10 @@ LANG_DICT = {
         "login": "🔐 LOGIN", 
         "register": "📝 REGISTER",
         "phone_id": "PHONE ID / USERNAME", 
-        "pass": "ACCESS CODE",
+        "pass_login": "PASSWORD",
+        "pass_reg": "CREATE NEW PASSWORD",
         "btn_login": "ENTER PORTAL", 
-        "name": "FULL NAME",
+        "name": "USERNAME",
         "btn_reg": "CREATE ACCOUNT", 
         "vip": "VIP",
         "credits": "Credits", 
@@ -69,9 +70,10 @@ LANG_DICT = {
         "login": "🔐 登录", 
         "register": "📝 注册账号",
         "phone_id": "手机号码 / 用户名", 
-        "pass": "访问密码",
+        "pass_login": "密码",
+        "pass_reg": "创建新密码",
         "btn_login": "进入系统", 
-        "name": "真实姓名",
+        "name": "用户名",
         "btn_reg": "立即注册", 
         "vip": "会员",
         "credits": "剩余积分", 
@@ -228,7 +230,7 @@ def show_login_page():
     
     with t1:
         p = st.text_input(L['phone_id'], key="lp")
-        c = st.text_input(L['pass'], type="password", key="lc")
+        c = st.text_input(L['pass_login'], type="password", key="lc")
         if st.button(L['btn_login']):
             clean_p = p.strip()
             clean_c = c.strip()
@@ -253,7 +255,7 @@ def show_login_page():
     with t2:
         rn = st.text_input(L['name'])
         rp = st.text_input(L['phone_id'], key="rp")
-        rc = st.text_input(L['pass'], type="password", key="rc")
+        rc = st.text_input(L['pass_reg'], type="password", key="rc")
         if st.button(L['btn_reg']):
             if rn and rp and rc:
                 clean_rp = rp.strip()
@@ -325,6 +327,7 @@ if st.session_state['logged_in']:
                     new_bal = user_data['credits'] - 1
                     sheet.update_cell(user_data['row'], 4, new_bal)
                     
+                    # --- FIREWALL PROOF SCRAPING LOGIC ---
                     try:
                         headers = {
                             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
