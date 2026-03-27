@@ -38,12 +38,14 @@ LANG_DICT = {
         "calibrating": "CALIBRATING DATA...",
         "generated": "Generated!", 
         "bal": "Balance",
-        "lines_4d": "10 Calibrated 4D Lines", 
+        "lines_4d": "Structured Master Matrix", 
         "lines_58": "6 Supreme 6/58 Matrix Lines",
         "lines_55": "6 Power 6/55 Matrix Lines", 
         "lines_50": "6 Star 6/50 Matrix Lines",
         "topup": "TOP UP CREDITS", 
-        "buy_btn": "💰 BUY 50 CREDITS (RM 10)",
+        "tier1_btn": "💰 15 Credits (RM 10)",
+        "tier2_btn": "💰 40 Credits (RM 20)",
+        "tier3_btn": "💰 75 Credits (RM 30) 🔥 BEST",
         "whatsapp": "WhatsApp receipt to Admin to unlock.", 
         "logout": "LOGOUT",
         "prize_cat": "Prize Category", 
@@ -53,11 +55,11 @@ LANG_DICT = {
         "calc_btn": "CALCULATE PAYOUT", 
         "total_won": "TOTAL WINNINGS",
         "share_wa": "📲 SHARE TO WHATSAPP",
-        "share_msg": "🔥 My HENG ONG HUAT 4D Picks today:",
+        "share_msg": "🔥 My HENG ONG HUAT Master Matrix today:\n",
         "wa_disclaimer": "⚠️ Disclaimer: This is a statistical prediction. Buy at your own risk!",
         "vip_title": "👑 VIP EXCLUSIVE NUMBERS",
         "vip_desc": "Get the top 10 hand-picked Master Matrix lines with the highest mathematical probability.",
-        "vip_buy": "💰 BUY 10 EXCLUSIVE NUMBERS (RM 50)",
+        "vip_buy": "💰 BUY 10 EXCLUSIVE NUMBERS (RM 10)",
         "vip_pass": "Enter VIP Passcode from Admin:",
         "vip_btn_unlock": "UNLOCK NUMBERS"
     },
@@ -83,12 +85,14 @@ LANG_DICT = {
         "calibrating": "正在校准数据...",
         "generated": "生成成功！", 
         "bal": "余额",
-        "lines_4d": "10组 4D 精准预测", 
+        "lines_4d": "结构化主矩阵", 
         "lines_58": "6组 Supreme 6/58 矩阵",
         "lines_55": "6组 Power 6/55 矩阵", 
         "lines_50": "6组 Star 6/50 矩阵",
         "topup": "充值积分", 
-        "buy_btn": "💰 购买 50 积分 (RM 10)",
+        "tier1_btn": "💰 15 积分 (RM 10)",
+        "tier2_btn": "💰 40 积分 (RM 20)",
+        "tier3_btn": "💰 75 积分 (RM 30) 🔥 超值",
         "whatsapp": "请发送收据给管理员进行解锁。", 
         "logout": "退出登录",
         "prize_cat": "中奖类别", 
@@ -98,11 +102,11 @@ LANG_DICT = {
         "calc_btn": "计算奖金", 
         "total_won": "总赢取奖金",
         "share_wa": "📲 发送至 WhatsApp",
-        "share_msg": "🔥 我今天的兴旺发 4D 心水字:",
+        "share_msg": "🔥 我今天的兴旺发结构化心水字:\n",
         "wa_disclaimer": "⚠️ 免责声明：这仅是统计预测。买字有风险，请自行承担责任！",
         "vip_title": "👑 VIP 大师专属预测",
         "vip_desc": "获取10组经过最高数学概率筛选的独家矩阵心水字。",
-        "vip_buy": "💰 购买 10 组独家号码 (RM 50)",
+        "vip_buy": "💰 购买 10 组独家号码 (RM 10)",
         "vip_pass": "输入管理员提供的 VIP 密码:",
         "vip_btn_unlock": "解锁号码"
     }
@@ -124,20 +128,24 @@ st.markdown("""
         fill: #000000 !important; width: 35px !important; height: 35px !important;
     }
 
-    .stButton>button {
+    .stButton>button, a[data-testid="baseLinkButton"] {
         width: 100%; border-radius: 0px !important; height: 4em;
         background-color: #ffffff !important; color: #000000 !important;
         font-weight: 900 !important; border: 4px solid #000000 !important;
+        display: flex; align-items: center; justify-content: center; text-decoration: none;
     }
-    .stButton>button:hover { background-color: #FF0000 !important; color: #ffffff !important; border-color: #FF0000 !important; }
+    .stButton>button:hover, a[data-testid="baseLinkButton"]:hover { 
+        background-color: #FF0000 !important; color: #ffffff !important; border-color: #FF0000 !important; 
+    }
     
     [data-testid="stMetricValue"] { color: #FF0000 !important; font-weight: 900 !important; }
     .live-clock { text-align: right; font-weight: 700; color: #FF0000 !important; }
     .vip-box { background-color: #FFF0F0; border: 2px solid #FF0000; padding: 20px; border-radius: 10px; text-align: center;}
+    .matrix-header { color: #000000; font-weight: 900; background-color: #FFD700; padding: 5px; border-radius: 5px; margin-top: 15px;}
     </style>
     """, unsafe_allow_html=True)
 
-# 3. STATIC VAULT DATA (Base Brain Updated with Wednesday 25/03/2026 Results)
+# 3. STATIC VAULT DATA
 VAULT_4D = "804742067103286850440350848318054440417559385864552091684536001873071971777188031209636110449966266945671303607723893076690985985267993009839620435588576096605930401995893762878725360786668159018587024804533890424548553723587768971374574997571246806521958263911898855525249523"
 VAULT_658 = [[18, 19, 29, 30, 36, 54], [2, 16, 20, 33, 34, 49], [8, 16, 22, 33, 53, 56], [4, 5, 13, 17, 22, 54], [7, 10, 18, 23, 26, 41], [26, 34, 39, 46, 47, 49], [5, 6, 15, 22, 40, 53], [4, 19, 29, 39, 50, 54]]
 VAULT_655 = [[5, 12, 28, 33, 41, 52], [2, 18, 24, 39, 45, 55], [7, 14, 21, 30, 48, 51], [9, 13, 27, 35, 42, 53], [4, 11, 22, 36, 49, 54]]
@@ -191,6 +199,22 @@ if 'lang' not in st.session_state:
     st.session_state['lang'] = "English"
 
 L = LANG_DICT[st.session_state['lang']]
+
+# GENERATOR LOGIC (Structural Engine)
+def generate_matrix_jackpot(vault, max_num):
+    all_n = [n for sub in vault for n in sub]
+    counts = collections.Counter(all_n)
+    population = list(range(1, max_num + 1))
+    
+    unique_sets = set()
+    while len(unique_sets) < 6:
+        weights = [counts.get(i, 0) + random.uniform(0.5, 3.0) for i in range(1, max_num + 1)]
+        current_line = set()
+        while len(current_line) < 6:
+            pick = random.choices(population, weights=weights, k=1)[0]
+            current_line.add(pick)
+        unique_sets.add(tuple(sorted(current_line)))
+    return unique_sets
 
 # 6. UI
 def show_login_page():
@@ -267,47 +291,90 @@ if st.session_state['logged_in']:
                     except Exception as e:
                         live_nums = ""
                     
-                    ranked = [d for d, _ in collections.Counter(st.session_state['live_vault_4d'] + live_nums).most_common()]
-                    st.success(f"{L['generated']} {L['bal']}: {new_bal}")
+                    # Core Structural Math Engine
+                    pool_4d = st.session_state['live_vault_4d'] + live_nums
+                    counter = collections.Counter(pool_4d)
+                    ranked_all = [d for d, _ in counter.most_common()]
                     
-                    st.markdown(f"### {L['lines_4d']}")
-                    c4 = st.columns(2)
+                    hot = ranked_all[:4]  # Momentum digits
+                    cold = ranked_all[-4:] # Snapback digits
                     
-                    generated_4d_wa = []
-                    unique_4d_set = set()
-                    display_4d = []
-                    
-                    while len(unique_4d_set) < 10:
-                        line = random.sample(ranked[:4], 3) + random.sample(ranked[4:8], 1)
-                        random.shuffle(line)
-                        final_line = "".join(line)
+                    def gen_24i():
+                        return "".join(random.sample(hot, 2) + random.sample(cold, 2))
                         
-                        if final_line not in unique_4d_set:
-                            unique_4d_set.add(final_line)
-                            prob_weight = round(random.uniform(84.5, 98.2), 2)
-                            display_4d.append((final_line, prob_weight))
-                            generated_4d_wa.append(f"🎯 {final_line} ({prob_weight}% Match)")
-                            
-                    for i, (f_line, p_weight) in enumerate(display_4d):
-                        with c4[i%2]:
-                            st.metric(label=f"Line {i+1}", value=f_line, delta=f"{p_weight}% Data Match", delta_color="normal")
+                    def gen_12i():
+                        pair_d = random.choice(hot)
+                        others = random.sample([d for d in hot+cold if d != pair_d], 2)
+                        line = [pair_d, pair_d, others[0], others[1]]
+                        random.shuffle(line)
+                        return "".join(line)
+                        
+                    def gen_6i():
+                        pairs = random.sample(hot + cold, 2)
+                        line = [pairs[0], pairs[0], pairs[1], pairs[1]]
+                        random.shuffle(line)
+                        return "".join(line)
+                        
+                    def gen_4i():
+                        triple = random.choice(hot)
+                        single = random.choice(cold)
+                        line = [triple, triple, triple, single]
+                        random.shuffle(line)
+                        return "".join(line)
+                        
+                    # Build the deduplicated matrix
+                    matrix = {"24i": set(), "12i": set(), "6i": set(), "4i": set()}
+                    while len(matrix["24i"]) < 4: matrix["24i"].add(gen_24i())
+                    while len(matrix["12i"]) < 3: matrix["12i"].add(gen_12i())
+                    while len(matrix["6i"]) < 2: matrix["6i"].add(gen_6i())
+                    while len(matrix["4i"]) < 1: matrix["4i"].add(gen_4i())
                     
-                    st.divider()
-                    wa_message = f"{L['share_msg']}\n\n" + "\n".join(generated_4d_wa) + f"\n\n{L['wa_disclaimer']}\n\nLet's HUAT together! 🧧"
-                    wa_url = f"https://api.whatsapp.com/send?text={urllib.parse.quote(wa_message)}"
-                    st.link_button(L['share_wa'], wa_url)
-                            
-                    def get_hot(v_list, count=12):
-                        all_n = [n for sub in v_list for n in sub]
-                        return [n for n, _ in collections.Counter(all_n).most_common(count)]
+                    st.success(f"{L['generated']} {L['bal']}: {new_bal}")
+                    st.markdown(f"### {L['lines_4d']}")
+                    
+                    wa_text = f"{L['share_msg']}\n"
+                    
+                    # Display 24i
+                    st.markdown('<div class="matrix-header">24i (Variance Net)</div>', unsafe_allow_html=True)
+                    wa_text += "\n*24i*\n"
+                    cols = st.columns(4)
+                    for i, num in enumerate(matrix["24i"]):
+                        cols[i % 4].metric(label="", value=num)
+                        wa_text += f"{num}\n"
+                        
+                    # Display 12i
+                    st.markdown('<div class="matrix-header">12i (Hot Anchors)</div>', unsafe_allow_html=True)
+                    wa_text += "\n*12i*\n"
+                    cols = st.columns(3)
+                    for i, num in enumerate(matrix["12i"]):
+                        cols[i % 3].metric(label="", value=num)
+                        wa_text += f"{num}\n"
+                        
+                    # Display 6i & 4i
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        st.markdown('<div class="matrix-header">6i (Double Pairs)</div>', unsafe_allow_html=True)
+                        wa_text += "\n*6i*\n"
+                        for num in matrix["6i"]:
+                            st.metric(label="", value=num)
+                            wa_text += f"{num}\n"
+                    with c2:
+                        st.markdown('<div class="matrix-header">4i (Triples)</div>', unsafe_allow_html=True)
+                        wa_text += "\n*4i*\n"
+                        for num in matrix["4i"]:
+                            st.metric(label="", value=num)
+                            wa_text += f"{num}\n"
 
                     st.divider()
+                    wa_text += f"\n{L['wa_disclaimer']}\nLet's HUAT together! 🧧"
+                    wa_url = f"https://api.whatsapp.com/send?text={urllib.parse.quote(wa_text)}"
+                    st.link_button(L['share_wa'], wa_url)
+                            
+                    # JACKPOT Entropy Engine
+                    st.divider()
                     st.markdown(f"### {L['lines_58']}")
-                    h58 = get_hot(VAULT_658)
                     cs = st.columns(2)
-                    u_58 = set()
-                    while len(u_58) < 6:
-                        u_58.add(tuple(sorted(random.sample(h58, 6))))
+                    u_58 = generate_matrix_jackpot(VAULT_658, 58)
                     for i, nums_tuple in enumerate(u_58):
                         nums_str = " ".join(f"{n:02d}" for n in nums_tuple)
                         prob = round(random.uniform(79.0, 93.5), 2)
@@ -316,11 +383,8 @@ if st.session_state['logged_in']:
                             
                     st.divider()
                     st.markdown(f"### {L['lines_55']}")
-                    h55 = get_hot(VAULT_655)
                     cp = st.columns(2)
-                    u_55 = set()
-                    while len(u_55) < 6:
-                        u_55.add(tuple(sorted(random.sample(h55, 6))))
+                    u_55 = generate_matrix_jackpot(VAULT_655, 55)
                     for i, nums_tuple in enumerate(u_55):
                         nums_str = " ".join(f"{n:02d}" for n in nums_tuple)
                         prob = round(random.uniform(79.0, 93.5), 2)
@@ -329,11 +393,8 @@ if st.session_state['logged_in']:
                             
                     st.divider()
                     st.markdown(f"### {L['lines_50']}")
-                    h50 = get_hot(VAULT_650)
                     ct = st.columns(2)
-                    u_50 = set()
-                    while len(u_50) < 6:
-                        u_50.add(tuple(sorted(random.sample(h50, 6))))
+                    u_50 = generate_matrix_jackpot(VAULT_650, 50)
                     for i, nums_tuple in enumerate(u_50):
                         nums_str = " ".join(f"{n:02d}" for n in nums_tuple)
                         prob = round(random.uniform(79.0, 93.5), 2)
@@ -408,7 +469,16 @@ if st.session_state['logged_in']:
         st.info(f"{L['credits']}: {user_data['credits']}")
         st.divider()
         st.markdown(f"### {L['topup']}")
-        st.link_button(L['buy_btn'], "https://buy.stripe.com/28E9AT5qh3oX9w0anIcbC02")
+        
+        st.write("Select a package below. After payment, WhatsApp the receipt to Admin.")
+        
+        c_tier1, c_tier2, c_tier3 = st.columns(3)
+        with c_tier1:
+            st.link_button(L['tier1_btn'], "https://buy.stripe.com/28E9AT5qh3oX9w0anIcbC02")
+        with c_tier2:
+            st.link_button(L['tier2_btn'], "https://buy.stripe.com/5kQ00j3i95x55fKdzUcbC04")
+        with c_tier3:
+            st.link_button(L['tier3_btn'], "https://buy.stripe.com/3cI9AT05XgbJaA48fAcbC05")
 
     elif page == L['admin']:
         st.title("SYSTEM ADMIN")
@@ -416,7 +486,7 @@ if st.session_state['logged_in']:
         
         with tab_users:
             tp = st.text_input("Phone ID")
-            tc = st.number_input("Add Credits", value=50)
+            tc = st.number_input("Add Credits", value=15)
             if st.button("UPDATE CREDITS"):
                 if tp in db:
                     sheet.update_cell(db[tp]['row'], 4, db[tp]['credits'] + tc)
