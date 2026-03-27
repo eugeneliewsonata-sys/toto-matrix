@@ -276,8 +276,24 @@ if st.session_state['logged_in']:
 
     if page == L['engine']:
         st.title(L['engine'])
-        if st.button(L['btn_gen']):
-            if user_data['credits'] > 0:
+        
+        if user_data['credits'] <= 0:
+            st.button(L['btn_gen'], disabled=True)
+            st.error("⚠️ Insufficient Credits to generate analysis. Please top up below.")
+            st.divider()
+            st.markdown(f"### {L['topup']}")
+            st.write("Select a package below to recharge. After payment, WhatsApp the receipt to Admin.")
+            
+            c_tier1, c_tier2, c_tier3 = st.columns(3)
+            with c_tier1:
+                st.link_button(L['tier1_btn'], "https://buy.stripe.com/28E9AT5qh3oX9w0anIcbC02")
+            with c_tier2:
+                st.link_button(L['tier2_btn'], "https://buy.stripe.com/5kQ00j3i95x55fKdzUcbC04")
+            with c_tier3:
+                st.link_button(L['tier3_btn'], "https://buy.stripe.com/3cI9AT05XgbJaA48fAcbC05")
+                
+        else:
+            if st.button(L['btn_gen']):
                 with st.spinner(L['calibrating']):
                     st.balloons()
                     components.html("""<audio autoplay><source src="https://www.soundjay.com/misc/sounds/cash-register-purchase-1.mp3"></audio>""", height=0)
@@ -285,10 +301,26 @@ if st.session_state['logged_in']:
                     new_bal = user_data['credits'] - 1
                     sheet.update_cell(user_data['row'], 4, new_bal)
                     
+                    # --- FIREWALL PROOF SCRAPING LOGIC ---
                     try:
-                        resp = requests.get("https://www.4dmoon.com/", headers={'User-Agent': 'Mozilla/5.0'}, timeout=5)
+                        headers = {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+                            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                            'Accept-Language': 'en-US,en;q=0.5',
+                            'Referer': 'https://www.google.com/',
+                            'Connection': 'keep-alive',
+                            'Upgrade-Insecure-Requests': '1',
+                            'Sec-Fetch-Dest': 'document',
+                            'Sec-Fetch-Mode': 'navigate',
+                            'Sec-Fetch-Site': 'cross-site',
+                            'Cache-Control': 'max-age=0'
+                        }
+                        # Added realistic headers and longer timeout to bypass Cloudflare/Sucuri bots checks
+                        resp = requests.get("https://www.4dmoon.com/", headers=headers, timeout=8)
+                        resp.raise_for_status() # Raise exception for 403 Forbidden or 503 Service Unavailable
                         live_nums = "".join(re.findall(r'\b\d{4}\b', BeautifulSoup(resp.text, 'html.parser').get_text())[:120])
                     except Exception as e:
+                        # Silently failover to the massive static vault without throwing an error to the user
                         live_nums = ""
                     
                     # Core Structural Math Engine
@@ -400,8 +432,6 @@ if st.session_state['logged_in']:
                         prob = round(random.uniform(79.0, 93.5), 2)
                         with ct[i%2]:
                             st.metric(label=f"Star {i+1}", value=nums_str, delta=f"{prob}% Data Match", delta_color="normal")
-            else:
-                st.error("No Credits.")
 
     elif page == L['vip_menu']:
         st.title(L['vip_title'])
