@@ -61,7 +61,7 @@ body::before {
   }
 }
 
-.safe-bottom { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+.safe-bottom { padding-bottom: calc(140px + env(safe-area-inset-bottom)); }
 
 /* Typography */
 .overline {

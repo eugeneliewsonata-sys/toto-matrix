@@ -110,7 +110,7 @@ export default function VipPage() {
         })}
       </div>
 
-      <button onClick={checkout} disabled={busy || !selected} className="btn-red w-full flex items-center justify-center gap-2" data-testid="checkout-stripe-button">
+      <button onClick={checkout} disabled={busy || !selected} className="btn-red w-full flex items-center justify-center gap-2 sticky bottom-28 shadow-[0_8px_24px_rgba(220,38,38,0.25)]" data-testid="checkout-stripe-button">
         {busy ? 'Loading…' : <>Continue to Checkout <ArrowRight size={16} strokeWidth={2.5} /></>}
       </button>
 

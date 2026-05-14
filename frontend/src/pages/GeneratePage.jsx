@@ -180,7 +180,8 @@ export default function GeneratePage() {
         onClick={spin}
         disabled={spinning || (tab === 'ai' && !aiInputsValid)}
         data-testid={tab === 'ai' ? 'predict-ai-button' : 'spin-button'}
-        className="btn-red w-full inline-flex items-center justify-center gap-2"
+        className="btn-red w-full inline-flex items-center justify-center gap-2 sticky bottom-28 shadow-[0_8px_24px_rgba(220,38,38,0.25)]"
+        style={{ marginBottom: '24px' }}
       >
         {spinning ? (
           <><RotateCw size={18} className="animate-spin" /> Working…</>
