@@ -1,0 +1,227 @@
+{
+  "theme": "Dark",
+  "archetype": "Archetype 5: Jewel & Luxury",
+  "domain": "Lottery & Casino Mobile App",
+  "typography": {
+    "headings": {
+      "family": "Playfair Display",
+      "weights": ["400", "600", "700"],
+      "description": "Used for primary screen titles, game titles, and VIP messaging to give a high-roller classic casino feel.",
+      "css_class": "font-serif"
+    },
+    "body": {
+      "family": "Outfit",
+      "weights": ["300", "400", "500", "600"],
+      "description": "Clean, modern geometric sans-serif to contrast the heavy serif headings. Highly legible for menus, settings, and smaller text.",
+      "css_class": "font-sans"
+    },
+    "numbers": {
+      "family": "Playfair Display",
+      "weights": ["700", "900"],
+      "description": "For the lottery numbers themselves. Bold, elegant, giving weight to the winning numbers.",
+      "css_class": "font-serif"
+    },
+    "rules": [
+      "Headings over 32px must use tracking-tight.",
+      "Overlines must be uppercase, tracking-[0.2em], text-xs.",
+      "Use fluid typography for hero sections."
+    ]
+  },
+  "colors": {
+    "background": {
+      "main": "#050505",
+      "secondary": "#0A0A0A",
+      "tertiary": "#141414"
+    },
+    "surfaces": {
+      "felt_green": "#0A2A1E",
+      "velvet_burgundy": "#3A0A14",
+      "card_dark": "rgba(20, 20, 20, 0.8)"
+    },
+    "brand_accents": {
+      "gold_primary": "#D4AF37",
+      "gold_light": "#FADB5F",
+      "gold_dark": "#997A00",
+      "ruby_red": "#E63946"
+    },
+    "text": {
+      "primary": "#FFFFFF",
+      "secondary": "#A1A1AA",
+      "gold_muted": "#B89B4A"
+    },
+    "borders": {
+      "subtle_gold": "rgba(212, 175, 55, 0.2)",
+      "glow_gold": "rgba(212, 175, 55, 0.5)"
+    },
+    "rules": [
+      "Never use pure black #000000; use #050505 to keep it rich.",
+      "Use subtle gold borders for premium cards.",
+      "Ensure contrast ratio is > 4.5:1 for normal text.",
+      "Active/Hover states should lighten the background or increase gold border opacity."
+    ]
+  },
+  "visual_effects": {
+    "glassmorphism": "Used for sticky headers and bottom nav. bg-black/80 backdrop-blur-xl border-t border-white/5.",
+    "glow": "Used for VIP buttons and winning numbers. drop-shadow-[0_0_15px_rgba(212,175,55,0.4)].",
+    "shimmer": "CSS animation sliding a linear gradient across gold text/buttons to simulate light reflection.",
+    "gradients": "Avoid flat gradients. Use radial gradients to simulate spotlighting on cards (e.g., center light fading to dark edges)."
+  },
+  "spacing_and_layout": {
+    "container": "w-full max-w-md mx-auto min-h-screen relative overflow-x-hidden shadow-2xl",
+    "padding": "px-4 sm:px-6",
+    "bento_grid": "Used for Home screen statistics and hot/cold numbers. Dense, rounded-2xl cards with 1px gold borders."
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-gradient-to-r from-[#D4AF37] to-[#FADB5F] text-black font-semibold rounded-full px-6 py-3 shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:scale-105 transition-transform",
+      "vip": "bg-[#050505] border border-[#D4AF37] text-[#D4AF37] font-semibold rounded-full px-6 py-3 hover:bg-[#D4AF37]/10 transition-colors",
+      "secondary": "bg-white/5 text-white font-medium rounded-full px-6 py-3 hover:bg-white/10 transition-colors"
+    },
+    "lottery_ball": "w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold font-serif shadow-inner bg-gradient-to-br from-[#FADB5F] to-[#997A00] text-black border border-white/20",
+    "inputs": "bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all outline-none",
+    "bottom_nav": "fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 bg-black/90 backdrop-blur-lg border-t border-white/10 flex justify-around py-4 pb-safe z-50",
+    "testing": "All buttons, inputs, tabs, and interactive cards MUST have data-testid attributes."
+  },
+  "media_and_images": [
+    {
+      "category": "hero_background",
+      "url": "https://static.prod-images.emergentagent.com/jobs/aa9ffe33-9de5-4b33-9ef3-2ba539599a3c/images/98a71691c358e50a0137cef41b09e03f1a3bcc455023a9d3d583f485d783ecfa.png",
+      "description": "Glowing neon slot machine drum spinning. Use as the background for the Quick Pick number generation screen."
+    },
+    {
+      "category": "vip_background",
+      "url": "https://static.prod-images.emergentagent.com/jobs/aa9ffe33-9de5-4b33-9ef3-2ba539599a3c/images/5b77aab5a4393e851f6b2704b2040c21fd0d201e06eba133084cdee74a8eed31.png",
+      "description": "Abstract luxury emerald green felt texture with gold geometry. Use for the Paywall / VIP Subscription screen."
+    },
+    {
+      "category": "results_visual",
+      "url": "https://static.prod-images.emergentagent.com/jobs/aa9ffe33-9de5-4b33-9ef3-2ba539599a3c/images/a61eb0615d528cb9e3d49e7327fa4ad4831089ea927168e1779a8c60b692a010.png",
+      "description": "Close-up of golden lottery balls. Use in the history screen header or as a visual flair on the home screen."
+    },
+    {
+      "category": "auth_background",
+      "url": "https://images.pexels.com/photos/7594128/pexels-photo-7594128.jpeg",
+      "description": "Luxurious casino interior/roulette table. Apply heavy dark overlay (bg-black/70) and use as background for Login/Register."
+    }
+  ],
+  "screens": {
+    "Auth": {
+      "layout": "Full screen with background image + heavy dark overlay. Center-aligned form. Must feel exclusive like entering a private club.",
+      "elements": [
+        "Brand Logo/Title (Playfair Display, Gold gradient)",
+        "Email & Password Inputs",
+        "Primary Login/Register Button (Gold CTA)",
+        "Link to switch between Login and Register"
+      ],
+      "data_testids": [
+        "login-email-input",
+        "login-password-input",
+        "login-submit-button",
+        "register-link"
+      ]
+    },
+    "Home": {
+      "layout": "Scrollable page with sticky bottom nav. Padding top for safe area.",
+      "elements": [
+        "Greeting Header with user name",
+        "Big Hero CTA Card for 'Generate Lucky Numbers' (Emerald Green or Velvet Burgundy background, gold subtle border, absolute positioned graphics)",
+        "Horizontal Scroll or Grid of 4 Game Selectors (6/58, 6/55, 6/52, 6/50) - styled as casino playing cards with metallic sheen",
+        "Recent generated picks section (mini lottery balls row)"
+      ],
+      "data_testids": [
+        "home-generate-cta",
+        "game-selector-6-58",
+        "game-selector-6-55",
+        "game-selector-6-52",
+        "game-selector-6-50",
+        "home-recent-picks"
+      ]
+    },
+    "Generate_Selector": {
+      "layout": "Tabbed view or split screen for 'Quick Pick' vs 'AI Lucky Picks'. Header overlaps background.",
+      "elements": [
+        "Tabs: Quick Pick (Free) | AI Premium (Locked/VIP)",
+        "Quick Pick: Large slot machine animation area. Massive 'SPIN' button.",
+        "AI Lucky Picks: Form inputs for Birthday (Date picker), Zodiac sign (Select), Favorite numbers. CTA 'Analyze & Predict'."
+      ],
+      "data_testids": [
+        "tab-quick-pick",
+        "tab-ai-premium",
+        "spin-button",
+        "input-birthday",
+        "select-zodiac",
+        "predict-ai-button"
+      ]
+    },
+    "Results_Screen": {
+      "layout": "Modal or slide-up sheet. Cinematic presentation of numbers in the center of the screen.",
+      "elements": [
+        "Confetti/Shimmer effect background animation",
+        "Row of 6 Lottery Balls (Gold or Ruby red depending on game)",
+        "Hot/Cold indicators underneath balls (if AI Pick was used)",
+        "Action buttons: Save Pick, Share, Generate Again"
+      ],
+      "data_testids": [
+        "result-ball-1",
+        "result-ball-2",
+        "result-ball-3",
+        "result-ball-4",
+        "result-ball-5",
+        "result-ball-6",
+        "save-pick-button",
+        "generate-again-button"
+      ]
+    },
+    "VIP_Paywall": {
+      "layout": "Full screen premium showcase using the emerald/gold background image.",
+      "elements": [
+        "VIP Crown Icon or Logo",
+        "Title: 'Become a High Roller'",
+        "Benefits list: AI Hot/Cold Analysis, Unlimited Premium Picks, Ad-free Experience",
+        "Pricing tiers: One-time Pass vs Monthly VIP (High contrast active states)",
+        "Stripe Checkout CTA"
+      ],
+      "data_testids": [
+        "vip-monthly-tier",
+        "vip-onetime-tier",
+        "checkout-stripe-button"
+      ]
+    },
+    "History": {
+      "layout": "List view with subtle card separators.",
+      "elements": [
+        "Chronological list of saved/generated picks",
+        "Each item shows: Date, Game Type, Numbers (mini balls), Tag (Quick Pick or AI)"
+      ],
+      "data_testids": [
+        "history-list-item-0",
+        "history-list-item-1"
+      ]
+    },
+    "Profile": {
+      "layout": "Simple vertical list of settings and user info in bento grid style.",
+      "elements": [
+        "Avatar/Email display area",
+        "VIP Status indicator (Gold badge if active, Greyed out if not)",
+        "Settings links, Logout button"
+      ],
+      "data_testids": [
+        "profile-email",
+        "vip-status-badge",
+        "logout-button"
+      ]
+    }
+  },
+  "instructions_to_main_agent": [
+    "Ensure the app is constrained to a max-width of `md` (approx 448px) and centered on larger screens to strictly emulate a mobile layout (using `mx-auto max-w-md min-h-screen bg-black relative`).",
+    "Use Phosphor Icons or Lucide React for crisp, premium iconography. Use Phosphor Icons preferably for the elegant duotone/fill options.",
+    "Implement Framer Motion for slot machine spinning numbers and modal page transitions.",
+    "Do not use default Shadcn styles blindly. Override them heavily to match the dark casino aesthetic. Strip out generic gray borders.",
+    "The 4 Toto games (6/58, 6/55, 6/52, 6/50) are core logic. Generate exactly 6 random numbers based on the selected game's max number (e.g., 1-58 for 6/58 Toto).",
+    "All backgrounds and colors MUST adhere to the Jewel & Luxury Archetype. NO plain white screens.",
+    "ALWAYS preserve the exact image URLs provided in the media section. Do not use placehold.it or similar.",
+    "Data test IDs are strictly required on all user interactable elements.",
+    "Use standard HTML inputs customized with Tailwind for the Auth forms if Shadcn forms are too rigid for the design.",
+    "Typography: Import 'Playfair Display' and 'Outfit' from Google Fonts and configure them in tailwind.config.js."
+  ]
+}
