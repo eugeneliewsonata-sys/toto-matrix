@@ -1,0 +1,226 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #0A0A0A;
+  --ink-soft: #1A1A1A;
+  --ink-mute: #6B6B6B;
+  --line: #E5E5E5;
+  --red: #DC2626;
+  --red-dark: #B91C1C;
+  --red-soft: #FFF1F2;
+  --white: #FFFFFF;
+}
+
+html, body, #root {
+  background: #ffffff;
+  color: var(--ink);
+  min-height: 100%;
+  overscroll-behavior-y: none;
+}
+
+body {
+  font-family: 'Manrope', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+::-webkit-scrollbar { width: 0; height: 0; }
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+
+/* Mobile shell — emulate a phone frame on desktop */
+.mobile-shell {
+  position: relative;
+  width: 100%;
+  max-width: 448px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #ffffff;
+  overflow-x: hidden;
+}
+
+/* Body backdrop for desktop view of mobile shell */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: #F5F5F5;
+  z-index: -1;
+}
+
+/* Mobile shell has a subtle outer shadow on desktop */
+@media (min-width: 640px) {
+  .mobile-shell {
+    box-shadow: 0 0 0 1px var(--line);
+  }
+}
+
+.safe-bottom { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+
+/* Typography */
+.overline {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-mute);
+}
+
+.display {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+/* Pill button — red filled */
+.btn-red {
+  background: var(--red);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 16px 24px;
+  transition: background 0.2s ease, transform 0.15s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+}
+.btn-red:hover { background: var(--red-dark); }
+.btn-red:active { transform: scale(0.98); }
+.btn-red:disabled { background: #FCA5A5; cursor: not-allowed; transform: none; }
+
+.btn-outline {
+  background: #fff;
+  color: var(--ink);
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 14px 22px;
+  border: 1px solid var(--line);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-size: 14px;
+}
+.btn-outline:hover { border-color: var(--ink); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink-mute);
+  font-weight: 600;
+  padding: 12px 18px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.btn-ghost:hover { color: var(--ink); }
+
+.input-min {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: var(--ink);
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: 'Manrope', sans-serif;
+  font-size: 15px;
+}
+.input-min:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.10);
+}
+.input-min::placeholder { color: #B5B5B5; }
+
+/* Card variants — minimalist */
+.card-min {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+}
+.card-red {
+  background: var(--red);
+  color: #fff;
+  border-radius: 20px;
+}
+.card-soft {
+  background: var(--red-soft);
+  border-radius: 20px;
+}
+
+/* Number tokens for Toto pick games */
+.num-token {
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  background: var(--red);
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+.num-token.sm { width: 36px; height: 36px; font-size: 14px; }
+.num-token.outline {
+  background: #fff;
+  color: var(--red);
+  border: 1.5px solid var(--red);
+}
+
+/* Big digit display for 4D / 5D / 6D — Swiss style with thin dividers */
+.digit-row {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+.digit-cell {
+  flex: 1 0 0;
+  min-width: 0;
+  padding: 16px 4px;
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  border-right: 1px solid var(--ink);
+}
+.digit-cell:last-child { border-right: none; }
+.digit-cell.spin {
+  color: var(--red);
+}
+
+.digit-row.lg .digit-cell { padding: 24px 4px; font-size: 56px; }
+.digit-row.sm .digit-cell { padding: 8px 4px; font-size: 22px; font-weight: 700; }
+
+/* Hairline divider */
+.hair {
+  height: 1px;
+  background: var(--line);
+  width: 100%;
+}
+
+/* Tiny chip */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: #F4F4F5;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.chip.red { background: var(--red-soft); color: var(--red); }
+.chip.dark { background: var(--ink); color: #fff; }
