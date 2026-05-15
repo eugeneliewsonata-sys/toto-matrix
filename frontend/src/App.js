@@ -10,6 +10,7 @@ import HistoryPage from './pages/HistoryPage';
 import VipPage from './pages/VipPage';
 import ProfilePage from './pages/ProfilePage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import AdminPage from './pages/AdminPage';
 import BottomNav from './components/BottomNav';
 
 function Protected({ children }) {
@@ -43,6 +44,7 @@ function Shell() {
         <Route path="/vip" element={<Protected><VipPage /></Protected>} />
         <Route path="/profile" element={<Protected><ProfilePage /></Protected>} />
         <Route path="/payment-success" element={<Protected><PaymentSuccessPage /></Protected>} />
+        <Route path="/admin" element={<Protected><AdminPage /></Protected>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {user && <BottomNav />}

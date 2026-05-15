@@ -16,6 +16,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import jwt
 from dotenv import load_dotenv
 
+import lottery_data as ld
+
 # Load env first
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
@@ -40,6 +42,7 @@ bearer = HTTPBearer(auto_error=False)
 # Emergent LLM
 EMERGENT_LLM_KEY = os.environ["EMERGENT_LLM_KEY"]
 STRIPE_API_KEY = os.environ["STRIPE_API_KEY"]
+ADMIN_EMAILS = {e.strip().lower() for e in os.environ.get("ADMIN_EMAILS", "").split(",") if e.strip()}
 
 # ---------- Malaysia Lottery Games Config ----------
 # type: "pick" = choose K numbers from 1..max ; type: "digit" = a single N-digit number
@@ -121,6 +124,7 @@ def serialize_user(u: dict) -> dict:
         "credits": u.get("credits", 3),
         "vip_until": u.get("vip_until"),
         "is_vip": bool(u.get("vip_until") and datetime.fromisoformat(u["vip_until"]) > now_utc()),
+        "is_admin": u["email"].lower() in ADMIN_EMAILS,
     }
 
 # ---------- App ----------
@@ -186,22 +190,50 @@ def quick_pick(max_n: int, count: int) -> List[int]:
 def quick_digits(n: int) -> str:
     return "".join(str(random.randint(0, 9)) for _ in range(n))
 
+# ---------- Live pool cache (refreshed lazily) ----------
+_LIVE_POOL_CACHE: Dict[str, object] = {"text": "", "fetched_at": None}
+
+async def get_extra_pool() -> str:
+    """Returns concatenated 4-digit strings from MongoDB `draws` + cached
+    live-scraped data. Scrapes once if cache is older than 6 hours."""
+    parts: List[str] = []
+    # Manual / scraped draws saved in Mongo (admin-added)
+    cursor = db.draws.find({}, {"_id": 0, "numbers": 1, "raw": 1})
+    async for doc in cursor:
+        if doc.get("numbers"):
+            parts.append("".join(doc["numbers"]))
+        elif doc.get("raw"):
+            parts.append(doc["raw"])
+    # Live scrape cache
+    fetched_at = _LIVE_POOL_CACHE.get("fetched_at")
+    now = now_utc()
+    stale = (fetched_at is None) or ((now - fetched_at).total_seconds() > 6 * 3600)
+    if stale:
+        try:
+            nums = await asyncio.to_thread(ld.scrape_live_4d, 6.0, 200)
+            _LIVE_POOL_CACHE["text"] = "".join(nums)
+            _LIVE_POOL_CACHE["fetched_at"] = now
+            _LIVE_POOL_CACHE["count"] = len(nums)
+        except Exception:
+            _LIVE_POOL_CACHE["text"] = _LIVE_POOL_CACHE.get("text", "")
+    parts.append(str(_LIVE_POOL_CACHE.get("text", "")))
+    return "".join(parts)
+
+async def hot_cold_digits_real() -> Dict[str, List[int]]:
+    extra = await get_extra_pool()
+    return ld.hot_cold_digits(extra_pool=extra, top_k=5)
+
+async def hot_cold_analysis_real(max_n: int) -> Dict[str, List[int]]:
+    extra = await get_extra_pool()
+    return ld.hot_cold_numbers(max_n, extra_pool=extra, top_k=8)
+
+# Synchronous fallbacks (offline)
 def hot_cold_digits() -> Dict[str, List[int]]:
-    rng = random.Random(2026)
-    pool = list(range(0, 10))
-    rng.shuffle(pool)
-    return {"hot": sorted(pool[:5]), "cold": sorted(pool[5:])}
+    return ld.hot_cold_digits(top_k=5)
 
 def hot_cold_analysis(max_n: int) -> Dict[str, List[int]]:
-    """Simulated hot/cold based on a deterministic pseudo-distribution.
-    In production this would query draw history."""
-    rng = random.Random(42)
-    pool = list(range(1, max_n + 1))
-    rng.shuffle(pool)
-    return {
-        "hot": sorted(pool[:8]),
-        "cold": sorted(pool[8:16]),
-    }
+    """Real hot/cold derived from bundled Malaysia 4D history (no live extra)."""
+    return ld.hot_cold_numbers(max_n, top_k=8)
 
 async def ai_lucky_pick(game: dict, birthday: Optional[str], zodiac: Optional[str], lucky_numbers: Optional[List[int]]) -> Dict:
     """Use Emergent LLM to recommend numbers (pick game) or a digit sequence (4D/5D/6D)."""
@@ -211,7 +243,7 @@ async def ai_lucky_pick(game: dict, birthday: Optional[str], zodiac: Optional[st
 
     if is_digit:
         n_digits = game["digits"]
-        hc = hot_cold_digits()
+        hc = await hot_cold_digits_real()
         sys_msg = (
             f"You are a Malaysia lottery numerologist for the {game['name']} game. "
             f"Produce ONE lucky {n_digits}-digit number (0-9 each digit, leading zeros allowed). "
@@ -230,7 +262,7 @@ async def ai_lucky_pick(game: dict, birthday: Optional[str], zodiac: Optional[st
         )
     else:
         max_n = game["max"]
-        hc = hot_cold_analysis(max_n)
+        hc = await hot_cold_analysis_real(max_n)
         sys_msg = (
             "You are a Malaysia lottery numerologist. You will produce one set of "
             f"{game['picks']} unique lucky lottery numbers from 1 to {max_n} for a player. "
@@ -526,6 +558,105 @@ async def stripe_webhook(request: Request):
         await _grant_package(resp.session_id)
 
     return {"received": True}
+
+
+# ---------- Admin (lottery draws + scraping) ----------
+class AdminDrawBody(BaseModel):
+    raw_text: str = Field(..., description="Free-form text; every 4-digit run is extracted")
+    label: Optional[str] = "manual"
+
+def require_admin(user=Depends(get_current_user)):
+    if user["email"].lower() not in ADMIN_EMAILS:
+        raise HTTPException(status_code=403, detail="Admin only")
+    return user
+
+@app.get("/api/admin/draws")
+async def list_draws(user=Depends(require_admin)):
+    cursor = db.draws.find({}, {"_id": 0}).sort("created_at", -1).limit(200)
+    items = await cursor.to_list(length=200)
+    bundled_count = sum(
+        len(e.get("top_3", [])) + len(e.get("special", [])) + len(e.get("consolation", []))
+        for e in ld.HISTORICAL_RESULTS.values()
+    )
+    return {
+        "bundled_count": bundled_count,
+        "bundled_draws": len(ld.HISTORICAL_RESULTS),
+        "manual_draws": len(items),
+        "draws": items,
+        "live_cache_count": _LIVE_POOL_CACHE.get("count", 0),
+        "live_cache_fetched_at": (
+            _LIVE_POOL_CACHE["fetched_at"].isoformat()
+            if _LIVE_POOL_CACHE.get("fetched_at") else None
+        ),
+    }
+
+@app.post("/api/admin/draws")
+async def add_draws(body: AdminDrawBody, user=Depends(require_admin)):
+    import re as _re
+    nums = _re.findall(r"\b\d{4}\b", body.raw_text or "")
+    if not nums:
+        raise HTTPException(status_code=400, detail="No 4-digit numbers found in input")
+    doc = {
+        "id": str(uuid.uuid4()),
+        "label": body.label or "manual",
+        "numbers": nums,
+        "count": len(nums),
+        "source": "admin_paste",
+        "created_at": now_utc().isoformat(),
+        "created_by": user["email"],
+    }
+    await db.draws.insert_one(doc)
+    doc.pop("_id", None)
+    return {"added": len(nums), "draw": doc}
+
+@app.post("/api/admin/scrape")
+async def trigger_scrape(user=Depends(require_admin)):
+    nums = await asyncio.to_thread(ld.scrape_live_4d, 8.0, 300)
+    _LIVE_POOL_CACHE["text"] = "".join(nums)
+    _LIVE_POOL_CACHE["fetched_at"] = now_utc()
+    _LIVE_POOL_CACHE["count"] = len(nums)
+    if nums:
+        await db.draws.insert_one({
+            "id": str(uuid.uuid4()),
+            "label": "scrape_4dmoon",
+            "numbers": nums,
+            "count": len(nums),
+            "source": "live_scrape",
+            "created_at": now_utc().isoformat(),
+            "created_by": user["email"],
+        })
+    return {"fetched": len(nums), "sample": nums[:10]}
+
+@app.get("/api/admin/stats")
+async def admin_stats(user=Depends(require_admin)):
+    extra = await get_extra_pool()
+    digits = await hot_cold_digits_real()
+    toto658 = await hot_cold_analysis_real(58)
+    total_users = await db.users.count_documents({})
+    total_picks = await db.picks.count_documents({})
+    total_txns = await db.payment_transactions.count_documents({})
+    paid_txns = await db.payment_transactions.count_documents({"payment_status": "paid"})
+    return {
+        "users": total_users,
+        "picks": total_picks,
+        "txns": total_txns,
+        "paid_txns": paid_txns,
+        "digit_hot_cold": digits,
+        "toto_6_58_hot_cold": toto658,
+        "extra_pool_size": len(extra),
+    }
+
+
+@app.on_event("startup")
+async def _seed():
+    """Seed live pool cache once at startup (best-effort, non-blocking)."""
+    try:
+        nums = await asyncio.to_thread(ld.scrape_live_4d, 5.0, 200)
+        _LIVE_POOL_CACHE["text"] = "".join(nums)
+        _LIVE_POOL_CACHE["fetched_at"] = now_utc()
+        _LIVE_POOL_CACHE["count"] = len(nums)
+    except Exception:
+        pass
 
 
 @app.on_event("shutdown")

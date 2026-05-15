@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../lib/auth';
-import { Crown, LogOut, Mail, ArrowRight } from 'lucide-react';
+import { Crown, LogOut, Mail, ArrowRight, Shield } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function ProfilePage() {
@@ -50,6 +50,19 @@ export default function ProfilePage() {
         </div>
         <ArrowRight size={16} className="text-ink-mute" />
       </Link>
+
+      {user?.is_admin && (
+        <Link to="/admin" className="card-min p-4 mb-3 flex items-center justify-between hover:border-red transition-colors" data-testid="profile-admin-link">
+          <div className="flex items-center gap-2">
+            <Shield size={16} className="text-red" />
+            <div>
+              <div className="font-semibold text-sm">Admin Console</div>
+              <div className="text-xs text-ink-mute">Data pool, scraping, stats</div>
+            </div>
+          </div>
+          <ArrowRight size={16} className="text-ink-mute" />
+        </Link>
+      )}
 
       <button onClick={onLogout} className="w-full inline-flex items-center justify-center gap-2 text-ink-mute py-4 hover:text-red transition-colors text-sm font-semibold" data-testid="logout-button">
         <LogOut size={15} /> Sign Out

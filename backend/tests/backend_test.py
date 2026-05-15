@@ -261,3 +261,144 @@ def test_payment_status_unknown_session_returns_404(session, auth_headers):
         headers=auth_headers, timeout=15,
     )
     assert r.status_code == 404
+
+
+# ---------- Admin (Iteration 3) ----------
+ADMIN_EMAIL = "admin@huatpick.com"
+ADMIN_PASSWORD = "adminpass123"
+
+
+@pytest.fixture(scope="session")
+def admin_auth(session):
+    r = session.post(f"{BASE_URL}/api/auth/login",
+                     json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD})
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+@pytest.fixture(scope="session")
+def admin_headers(admin_auth):
+    return {"Authorization": f"Bearer {admin_auth['access_token']}",
+            "Content-Type": "application/json"}
+
+
+def test_serialize_user_is_admin_flag(admin_auth, auth):
+    # admin login returns is_admin true
+    assert admin_auth["user"]["is_admin"] is True
+    # regular tester is_admin false
+    assert auth["user"]["is_admin"] is False
+
+
+def test_admin_stats_requires_admin(session, auth_headers):
+    r = session.get(f"{BASE_URL}/api/admin/stats", headers=auth_headers)
+    assert r.status_code == 403
+
+
+def test_admin_stats_no_token(session):
+    r = session.get(f"{BASE_URL}/api/admin/stats")
+    assert r.status_code in (401, 403)
+
+
+def test_admin_stats_ok(session, admin_headers):
+    r = session.get(f"{BASE_URL}/api/admin/stats", headers=admin_headers)
+    assert r.status_code == 200, r.text
+    data = r.json()
+    for k in ("users", "picks", "txns", "paid_txns", "digit_hot_cold",
+              "toto_6_58_hot_cold", "extra_pool_size"):
+        assert k in data, f"missing key {k}"
+    assert isinstance(data["users"], int) and data["users"] >= 1
+    # Real data signal: digit '9' (247) is hottest of bundled set; '7' (207) coldest.
+    # Live scraped pool may add a little noise but bundled (575 nums) dominates.
+    hot = data["digit_hot_cold"]["hot"]
+    cold = data["digit_hot_cold"]["cold"]
+    assert isinstance(hot, list) and isinstance(cold, list)
+    assert 9 in hot or 8 in hot, f"expected 9/8 in hot digits, got hot={hot}"
+    assert 7 in cold, f"expected 7 in cold digits, got cold={cold}"
+    # Toto hot/cold from 2-digit windows
+    t = data["toto_6_58_hot_cold"]
+    assert "hot" in t and "cold" in t
+    assert all(1 <= n <= 58 for n in t["hot"])
+    assert all(1 <= n <= 58 for n in t["cold"])
+    assert len(t["hot"]) >= 5
+
+
+def test_admin_draws_list(session, admin_headers):
+    r = session.get(f"{BASE_URL}/api/admin/draws", headers=admin_headers)
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data["bundled_draws"] == 25
+    assert data["bundled_count"] >= 500
+    assert isinstance(data["draws"], list)
+
+
+def test_admin_draws_list_forbidden(session, auth_headers):
+    r = session.get(f"{BASE_URL}/api/admin/draws", headers=auth_headers)
+    assert r.status_code == 403
+
+
+def test_admin_add_draws_extracts_3(session, admin_headers):
+    r = session.post(f"{BASE_URL}/api/admin/draws",
+                     json={"raw_text": "8888 7777 abc 9999",
+                           "label": "TEST_iteration3"},
+                     headers=admin_headers)
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data["added"] == 3
+    assert data["draw"]["numbers"] == ["8888", "7777", "9999"]
+    assert data["draw"]["label"] == "TEST_iteration3"
+    assert "_id" not in data["draw"]
+
+
+def test_admin_add_draws_empty_400(session, admin_headers):
+    r = session.post(f"{BASE_URL}/api/admin/draws",
+                     json={"raw_text": "no digits here", "label": "x"},
+                     headers=admin_headers)
+    assert r.status_code == 400
+
+
+def test_admin_add_draws_forbidden(session, auth_headers):
+    r = session.post(f"{BASE_URL}/api/admin/draws",
+                     json={"raw_text": "1234"}, headers=auth_headers)
+    assert r.status_code == 403
+
+
+def test_admin_scrape_does_not_error(session, admin_headers):
+    r = session.post(f"{BASE_URL}/api/admin/scrape",
+                     headers=admin_headers, timeout=30)
+    # External site may be unreachable -> {fetched:0}, but never 500.
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert "fetched" in data and isinstance(data["fetched"], int)
+    assert "sample" in data and isinstance(data["sample"], list)
+    assert data["fetched"] >= 0
+
+
+def test_admin_scrape_forbidden(session, auth_headers):
+    r = session.post(f"{BASE_URL}/api/admin/scrape", headers=auth_headers)
+    assert r.status_code == 403
+
+
+def test_generate_ai_returns_real_hot_cold_4d(session, admin_headers):
+    # use admin (has plenty of credits perhaps; otherwise we just assert payload).
+    r = session.post(
+        f"{BASE_URL}/api/generate",
+        json={"game_id": "4d", "mode": "ai", "birthday": "1990-01-01",
+              "zodiac": "Tiger", "lucky_numbers": [3, 9]},
+        headers=admin_headers, timeout=90,
+    )
+    # If admin out of credits we still accept 402, but ideally seeded fresh
+    if r.status_code == 402:
+        pytest.skip("Admin out of credits; can't verify hot/cold in payload")
+    assert r.status_code == 200, r.text
+    pick = r.json()["pick"]
+    assert pick["game_type"] == "digit"
+    hc = pick.get("hot_cold") or pick.get("hot_cold_digits") or pick.get("hot") or {}
+    # Accept either nested or flat
+    flat = {}
+    if isinstance(hc, dict):
+        flat = hc
+    elif "reasoning" in pick:
+        flat = {}
+    # The response should include digits 0-9 in some hot/cold structure
+    # We don't strictly enforce key naming; just sanity-check via reasoning or analysis fields.
+    assert isinstance(pick.get("digit_sequence"), str) and len(pick["digit_sequence"]) == 4

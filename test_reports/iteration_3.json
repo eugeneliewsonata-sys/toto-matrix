@@ -1,0 +1,49 @@
+{
+  "summary": "Iteration 3 testing. Backend: 33/33 pytest tests PASS (100%) — 21 regression tests from prior iterations + 12 new admin/real-data tests. Real Malaysia 4D hot/cold confirmed via /api/admin/stats (hot includes 9 & 8, cold includes 7; Toto 6/58 hot includes 44 & 55, cold includes 16 & 21). Admin gating works (403 for non-admin, 401 for unauthenticated). serialize_user.is_admin flag correct. Frontend: admin login -> profile shows profile-admin-link -> /admin loads admin-page with full stats grid, Data Library (Bundled 25 / 575 nums), Scrape btn (working), Inject form (working, persists new batch and refreshes list), Hot/Cold preview cards rendering real digits and Toto numbers. Non-admin user: profile-admin-link absent, /admin URL redirects back to /. No regressions on prior iteration-2 issue area (didn't re-test predict-ai-button overlap; main agent should verify separately if a fix landed).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "AdminPage hot/cold preview",
+        "issues": [
+          "Toto 6/58 hot/cold chips render fine but no legend for what numbers represent (just 'HOT'/'COLD'). Minor — informational tooltip would help."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Nothing critical from this iteration. Backend + admin frontend flows are 100% green. If iteration-2 predict-ai-button overlap fix has not yet been applied (safe-bottom 110->160px / pb-32 on GeneratePage), it still needs to be addressed — was outside this iteration's scope but remains a P1 from iteration_2.json."
+  ],
+  "critical_code_review_comments": [
+    "server.py /api/admin/scrape: live scrape runs synchronously in a thread (asyncio.to_thread). With a 8s/30s timeout an admin double-clicking the button could queue multiple HTTP fetches. Consider a global asyncio.Lock or a simple in-flight flag in _LIVE_POOL_CACHE.",
+    "server.py startup _seed swallows ALL exceptions silently with bare 'except Exception: pass' — startup scrape failures are invisible. At minimum log the failure (logger.warning).",
+    "lottery_data.scrape_live_4d (sync requests call) is invoked from async via to_thread, which is fine, but the request timeout (5-8s) blocks app startup. Better: schedule scraping as a fire-and-forget asyncio.Task after app is ready, not inside @app.on_event('startup') awaited.",
+    "AdminPage Inject form: empty 'raw_text' will hit the 400 from backend; UI does not disable the button when input is empty. Minor UX hole.",
+    "ADMIN_EMAILS parsing in server.py uses comma split + lowercase strip — good. But there is no log on startup of how many admins were configured (helpful for debugging).",
+    "serialize_user computes is_admin on the fly from ADMIN_EMAILS env — correct and avoids stale DB flags; well done.",
+    "Iteration-2 carry-over: CORS allow_origins=['*'] with allow_credentials=True still present in server.py (line 133-139). Browsers reject credentialed CORS with wildcard origin per spec; pin to actual frontend URL via CORS_ORIGINS env (already defined but unused).",
+    "/api/admin/draws GET limits to 200 docs and bundled_count loops every call — fine at current scale, but consider caching ld.HISTORICAL_RESULTS counts module-level."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py"
+  ],
+  "success_rate": {
+    "backend": "100% (33/33)",
+    "frontend": "100% on admin-specific flows (login as admin, profile link, admin-page render, scrape btn, inject form, hot/cold preview, non-admin redirect, non-admin link absence)"
+  },
+  "test_credentials": "Admin: admin@huatpick.com / adminpass123 (pre-seeded). Non-admin: tester+{ts}@huatpick.com / lucky123 (auto-registered in tests).",
+  "seed_data_creation": "Tests insert one TEST_iteration3 batch via POST /api/admin/draws (3 numbers: 8888,7777,9999) — left in DB intentionally for next iteration regression visibility; clean up via mongo if needed.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "33-test pytest suite at /app/backend/tests/backend_test.py covers public + auth + generate (pick & digit) + payments + admin. To re-run: pytest /app/backend/tests/backend_test.py -v. Admin endpoints validated via real REAL data signals (digit '9' hottest, '7' coldest; Toto 44/55 hot). Frontend admin flows validated end-to-end with playwright. The only known outstanding issue is from iteration_2: predict-ai-button on /generate AI tab is overlapped by bottom-nav at default scroll (viewport 390x844) — NOT re-verified in this iteration.",
+  "rca of the issue": "N/A — no new bugs found in iteration 3."
+}
