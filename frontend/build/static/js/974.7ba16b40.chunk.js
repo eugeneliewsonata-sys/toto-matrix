@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunklottoluxe_frontend=self.webpackChunklottoluxe_frontend||[]).push([[974],{974(e,n,t){t.d(n,{SplashScreen:()=>l});const l=(0,t(403).F3)("SplashScreen",{web:()=>t.e(484).then(t.bind(t,484)).then(e=>new e.SplashScreenWeb)})}}]);
+//# sourceMappingURL=974.7ba16b40.chunk.js.map

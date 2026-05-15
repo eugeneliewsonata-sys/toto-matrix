@@ -1,0 +1,9 @@
+{
+  "short_name": "LottoLuxe",
+  "name": "LottoLuxe – Malaysia Toto AI",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#050505",
+  "background_color": "#050505"
+}

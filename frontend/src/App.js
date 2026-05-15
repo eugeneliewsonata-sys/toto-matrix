@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { AuthProvider, useAuth } from './lib/auth';
@@ -12,6 +12,26 @@ import ProfilePage from './pages/ProfilePage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import AdminPage from './pages/AdminPage';
 import BottomNav from './components/BottomNav';
+
+/** Best-effort native plugin init (no-op in plain web).
+ *  Capacitor exposes `window.Capacitor` only when running inside the native shell. */
+function useNativeShell() {
+  useEffect(() => {
+    const cap = typeof window !== 'undefined' ? window.Capacitor : null;
+    if (!cap || !cap.isNativePlatform || !cap.isNativePlatform()) return;
+    (async () => {
+      try {
+        const { StatusBar, Style } = await import('@capacitor/status-bar');
+        await StatusBar.setStyle({ style: Style.Light });
+        await StatusBar.setBackgroundColor({ color: '#FFFFFF' });
+      } catch (_) { /* ignore */ }
+      try {
+        const { SplashScreen } = await import('@capacitor/splash-screen');
+        await SplashScreen.hide();
+      } catch (_) { /* ignore */ }
+    })();
+  }, []);
+}
 
 function Protected({ children }) {
   const { user, loading } = useAuth();
@@ -56,11 +76,16 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Shell />
+        <ShellWithNative />
         <Toaster theme="light" position="top-center" toastOptions={{
           style: { background: '#fff', color: '#0A0A0A', border: '1px solid #E5E5E5' }
         }} />
       </AuthProvider>
     </BrowserRouter>
   );
+}
+
+function ShellWithNative() {
+  useNativeShell();
+  return <Shell />;
 }

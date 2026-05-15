@@ -33,9 +33,10 @@ Refinements from clarifications:
 - ✅ Quick Pick generation (random, free, unlimited)
 - ✅ AI Lucky Pick via Gemini 2.5 Flash with numerology reasoning
 - ✅ **REAL Malaysia 4D draw history bundled** (25 draws, 575 numbers, 2300 digit observations from Feb–Mar 2026)
-- ✅ **REAL hot/cold analysis** — derived from actual draw frequencies (digit 9 hottest @ 247 hits, 7 coldest @ 207 hits; Toto 6/58: 44/55 hot, 16/21 cold)
-- ✅ **Live scraping** from www.4dmoon.com on startup + on-demand via admin endpoint
-- ✅ **Admin Console** (gated by `ADMIN_EMAILS` env var): stats dashboard, data library counts, run-live-scrape button, paste-text-to-inject draws, hot/cold preview
+- ✅ **REAL hot/cold analysis** — derived from actual draw frequencies (digit 9 hottest @ 247 hits, 7 coldest @ 207 hits)
+- ✅ **Sports Toto official scraper** (lottolyzer.com / 4d2u.com) — pulls 60 draws per game (6/58, 6/55, 6/52, 6/50), real Toto-number hot/cold
+- ✅ **Live 4D scraping** from www.4dmoon.com (fire-and-forget on startup, on-demand via admin)
+- ✅ **Admin Console** (gated by `ADMIN_EMAILS` env var): stats dashboard, data library counts, run-live-scrape button, paste-text Inject form (with empty-input disable), hot/cold preview
 - ✅ Credit consumption + VIP override (unlimited for VIP)
 - ✅ Pick history (sorted desc, mixed digit + pick games)
 - ✅ Stripe checkout (one-time + subscription packages)
@@ -46,8 +47,9 @@ Refinements from clarifications:
 - ✅ Mobile shell + sticky bottom nav + sticky action buttons (no overlap)
 - ✅ Form validation: AI predict button disabled until at least one input provided
 - ✅ data-testid attributes across all interactive elements
-- ✅ Backend: 33/33 pytest tests pass (auth, games, generate quick & AI, payments, admin)
-- ✅ Frontend: all flows verified by Playwright agent
+- ✅ Backend: 33/33 pytest tests pass
+- ✅ Deployment readiness verified by deployment_agent (PASS)
+- ✅ **Capacitor wrapping**: full native Android Studio project at `/app/frontend/android/`, Xcode workspace at `/app/frontend/ios/`, status-bar/splash plugins wired, build guide at `/app/MOBILE_BUILD_GUIDE.md`
 
 ## Prioritized Backlog
 **P0 / Next polish**

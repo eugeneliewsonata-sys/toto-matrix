@@ -3,20 +3,32 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@capacitor/android": "^6",
+    "@capacitor/app": "^6",
+    "@capacitor/cli": "^6",
+    "@capacitor/core": "^6",
+    "@capacitor/haptics": "^6",
+    "@capacitor/ios": "^6",
+    "@capacitor/splash-screen": "^6",
+    "@capacitor/status-bar": "^6",
+    "axios": "^1.7.7",
+    "framer-motion": "^11.5.4",
+    "lucide-react": "^0.451.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
     "react-scripts": "5.0.1",
-    "axios": "^1.7.7",
-    "framer-motion": "^11.5.4",
-    "lucide-react": "^0.451.0",
     "sonner": "^1.5.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "cap:sync": "react-scripts build && cap sync",
+    "cap:android": "react-scripts build && cap sync android && cap open android",
+    "cap:ios": "react-scripts build && cap sync ios && cap open ios",
+    "cap:run:android": "react-scripts build && cap sync android && cap run android"
   },
   "eslintConfig": {
     "extends": [
@@ -38,6 +50,7 @@
   "devDependencies": {
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.13"
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5"
   }
 }
