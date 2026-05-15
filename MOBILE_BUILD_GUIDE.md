@@ -117,6 +117,25 @@ Edit `/app/frontend/capacitor.config.ts` if you want to change:
 
 After editing, re-run `yarn cap:sync`.
 
+> ℹ️ **About `com.huatpick.app`**: You do **not** need to own the domain `huatpick.com`
+> to use this appId. Both Play Store and App Store only require that the bundle ID is
+> unique within their own systems. If `com.huatpick.app` is already taken when you
+> upload, change it to something like `com.jhcreative.huatpick` and re-sync.
+
+### Required for Play Store / App Store listings
+| Field | Value |
+|---|---|
+| **Developer name** | JH Creative Enterprise |
+| **Support email** | turyoungpotato@gmail.com |
+| **Privacy Policy URL** | `https://<your-deployed-url>/privacy` |
+| **Terms of Service URL** | `https://<your-deployed-url>/terms` |
+| **Age rating** | 18+ (gambling-adjacent content; lottery suggestions) |
+| **Content rating IARC questionnaire** | Answer "simulated gambling: no" (we suggest numbers, we don't take bets) |
+
+Both legal pages are already built into the app and publicly accessible without
+login at `/privacy` and `/terms` — both URLs get crawled by the stores when you
+paste them into the listing.
+
 ### App icon & splash screen
 Replace the placeholder assets:
 

@@ -71,6 +71,16 @@ export default function ProfilePage() {
       <p className="text-[11px] text-ink-mute text-center mt-8 leading-relaxed">
         HuatPick is an AI entertainment tool. No guarantees of winnings.<br />Play responsibly.
       </p>
+      <p className="text-[11px] text-ink-mute text-center mt-3">
+        <Link to="/privacy" className="underline hover:text-ink" data-testid="profile-privacy-link">Privacy</Link>
+        {' · '}
+        <Link to="/terms" className="underline hover:text-ink" data-testid="profile-terms-link">Terms</Link>
+        {' · '}
+        <a href="mailto:turyoungpotato@gmail.com" className="underline hover:text-ink">Contact</a>
+      </p>
+      <p className="text-[10px] text-ink-mute text-center mt-2">
+        © {new Date().getFullYear()} JH Creative Enterprise
+      </p>
     </div>
   );
 }

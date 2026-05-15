@@ -93,7 +93,11 @@ export default function AuthPage() {
         </button>
 
         <p className="text-center text-[11px] text-ink-mute pt-2">
-          For entertainment only. Play responsibly.
+          For entertainment only. Play responsibly.<br />
+          By continuing you agree to our{' '}
+          <a href="/terms" className="text-red underline" data-testid="auth-terms-link">Terms</a>
+          {' & '}
+          <a href="/privacy" className="text-red underline" data-testid="auth-privacy-link">Privacy Policy</a>.
         </p>
       </motion.form>
     </div>

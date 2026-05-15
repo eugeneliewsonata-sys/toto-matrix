@@ -50,6 +50,8 @@ Refinements from clarifications:
 - ✅ Backend: 33/33 pytest tests pass
 - ✅ Deployment readiness verified by deployment_agent (PASS)
 - ✅ **Capacitor wrapping**: full native Android Studio project at `/app/frontend/android/`, Xcode workspace at `/app/frontend/ios/`, status-bar/splash plugins wired, build guide at `/app/MOBILE_BUILD_GUIDE.md`
+- ✅ **Privacy Policy** (`/privacy`) and **Terms of Service** (`/terms`) — publicly accessible (no auth wall), tailored for Malaysia lottery context with JH Creative Enterprise as operator, turyoungpotato@gmail.com as contact
+- ✅ Auth page footer + Profile page footer link to legal pages; Profile shows © JH Creative Enterprise
 
 ## Prioritized Backlog
 **P0 / Next polish**

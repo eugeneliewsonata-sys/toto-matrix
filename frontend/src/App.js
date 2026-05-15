@@ -11,6 +11,8 @@ import VipPage from './pages/VipPage';
 import ProfilePage from './pages/ProfilePage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import AdminPage from './pages/AdminPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsPage from './pages/TermsPage';
 import BottomNav from './components/BottomNav';
 
 /** Best-effort native plugin init (no-op in plain web).
@@ -57,6 +59,8 @@ function Shell() {
     <div className={`mobile-shell ${user ? 'safe-bottom' : ''}`}>
       <Routes>
         <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
         <Route path="/" element={<Protected><HomePage /></Protected>} />
         <Route path="/generate" element={<Protected><GeneratePage /></Protected>} />
         <Route path="/generate/:gameId" element={<Protected><GeneratePage /></Protected>} />
