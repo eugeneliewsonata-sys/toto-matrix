@@ -144,9 +144,19 @@ app.add_middleware(
 )
 
 # ---------- Public ----------
+@app.get("/")
+async def root_unprefixed():
+    """Top-level health endpoint for health-check probes that don't include /api prefix."""
+    return {"app": "HuatPick", "status": "ok"}
+
 @app.get("/api/")
 async def root():
-    return {"app": "LottoLuxe", "status": "ok", "time": now_utc().isoformat()}
+    return {"app": "HuatPick", "status": "ok", "time": now_utc().isoformat()}
+
+@app.get("/api/healthz")
+async def healthz():
+    """Lightweight readiness probe — never touches MongoDB, scraping, or auth."""
+    return {"status": "ok"}
 
 @app.get("/api/games")
 async def list_games():
@@ -200,27 +210,23 @@ _LIVE_POOL_CACHE: Dict[str, object] = {"text": "", "fetched_at": None}
 
 async def get_extra_pool() -> str:
     """Returns concatenated 4-digit strings from MongoDB `draws` + cached
-    live-scraped data. Scrapes once if cache is older than 6 hours."""
+    live-scraped data.
+
+    Note: never scrapes inline. The startup background task / admin endpoint
+    refreshes the cache. Keeping this call cheap is important so /api/generate
+    and admin requests do not block on external HTTP.
+    """
     parts: List[str] = []
-    # Manual / scraped draws saved in Mongo (admin-added)
-    cursor = db.draws.find({}, {"_id": 0, "numbers": 1, "raw": 1})
-    async for doc in cursor:
-        if doc.get("numbers"):
-            parts.append("".join(doc["numbers"]))
-        elif doc.get("raw"):
-            parts.append(doc["raw"])
-    # Live scrape cache
-    fetched_at = _LIVE_POOL_CACHE.get("fetched_at")
-    now = now_utc()
-    stale = (fetched_at is None) or ((now - fetched_at).total_seconds() > 6 * 3600)
-    if stale:
-        try:
-            nums = await asyncio.to_thread(ld.scrape_live_4d, 6.0, 200)
-            _LIVE_POOL_CACHE["text"] = "".join(nums)
-            _LIVE_POOL_CACHE["fetched_at"] = now
-            _LIVE_POOL_CACHE["count"] = len(nums)
-        except Exception:
-            _LIVE_POOL_CACHE["text"] = _LIVE_POOL_CACHE.get("text", "")
+    try:
+        cursor = db.draws.find({}, {"_id": 0, "numbers": 1, "raw": 1})
+        async for doc in cursor:
+            if doc.get("numbers"):
+                parts.append("".join(doc["numbers"]))
+            elif doc.get("raw"):
+                parts.append(doc["raw"])
+    except Exception:
+        # MongoDB might be momentarily unavailable; degrade gracefully.
+        pass
     parts.append(str(_LIVE_POOL_CACHE.get("text", "")))
     return "".join(parts)
 
@@ -519,7 +525,7 @@ async def payment_status(session_id: str, request: Request, user=Depends(get_cur
     stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
     try:
         status_resp = await stripe_checkout.get_checkout_status(session_id)
-    except Exception as e:
+    except Exception:
         # Stripe may not yet have propagated the session; return pending so the
         # frontend polling can retry without failing the UX.
         fresh_user = await db.users.find_one({"id": user["id"]}, {"_id": 0, "password_hash": 0})
@@ -689,10 +695,30 @@ async def admin_stats(user=Depends(require_admin)):
 
 @app.on_event("startup")
 async def _seed():
-    """Schedule live scrape as fire-and-forget so app start is not blocked."""
+    """Schedule live scrape as fire-and-forget so app start is not blocked.
+
+    The task waits a few seconds before doing any network/DB work so the
+    server has time to fully come online and answer health-check probes
+    without competing for CPU / thread pool slots.
+
+    To disable startup scraping entirely (recommended for environments
+    where outbound HTTP is restricted), set env var DISABLE_STARTUP_SCRAPE=1.
+    """
+    if os.environ.get("DISABLE_STARTUP_SCRAPE", "").lower() in ("1", "true", "yes"):
+        print("[startup] startup scrape disabled via DISABLE_STARTUP_SCRAPE env")
+        return
+
     async def _bg():
+        # Let the server come up cleanly and start answering readiness probes
+        # before we start contending for thread pool + outbound sockets.
         try:
-            nums = await asyncio.to_thread(ld.scrape_live_4d, 8.0, 200)
+            await asyncio.sleep(10)
+        except Exception:
+            pass
+
+        # 4dmoon scrape
+        try:
+            nums = await asyncio.to_thread(ld.scrape_live_4d, 6.0, 200)
             _LIVE_POOL_CACHE["text"] = "".join(nums)
             _LIVE_POOL_CACHE["fetched_at"] = now_utc()
             _LIVE_POOL_CACHE["count"] = len(nums)
@@ -700,12 +726,13 @@ async def _seed():
         except Exception as e:
             print(f"[startup] 4dmoon scrape failed: {e}")
 
-        # Sports Toto scrape (optional, best-effort)
-        try:
-            for game_id, max_n in [("6_58", 58), ("6_55", 55), ("6_52", 52), ("6_50", 50)]:
-                draws = await asyncio.to_thread(ld.scrape_sportstoto, game_id, max_n, 60, 8.0)
-                if draws:
-                    # Store latest draws (replace cache row per game)
+        # Sports Toto scrape (optional, best-effort, never raises)
+        for game_id, max_n in [("6_58", 58), ("6_55", 55), ("6_52", 52), ("6_50", 50)]:
+            try:
+                draws = await asyncio.to_thread(ld.scrape_sportstoto, game_id, max_n, 60, 6.0)
+                if not draws:
+                    continue
+                try:
                     await db.toto_draws.delete_many({"game_id": game_id, "source": "scrape"})
                     await db.toto_draws.insert_one({
                         "id": str(uuid.uuid4()),
@@ -716,10 +743,15 @@ async def _seed():
                         "created_at": now_utc().isoformat(),
                     })
                     print(f"[startup] sports-toto {game_id}: {len(draws)} draws cached")
-        except Exception as e:
-            print(f"[startup] sports-toto scrape failed: {e}")
+                except Exception as db_e:
+                    print(f"[startup] sports-toto {game_id} db write failed: {db_e}")
+            except Exception as e:
+                print(f"[startup] sports-toto {game_id} scrape failed: {e}")
 
-    asyncio.create_task(_bg())
+    try:
+        asyncio.create_task(_bg())
+    except Exception as e:
+        print(f"[startup] could not schedule background scrape: {e}")
 
 
 @app.on_event("shutdown")
