@@ -204,8 +204,13 @@ def scrape_sportstoto(game_id: str, max_n: int, max_draws: int = 60, timeout: fl
             i = 0
             while i + 6 <= len(in_range) and len(draws) < max_draws:
                 chunk = in_range[i:i+6]
-                # Treat as valid Toto draw if all 6 numbers are unique.
-                if len(set(chunk)) == 6:
+                # Treat as valid Toto draw if all 6 numbers are unique AND
+                # the spread is wide enough to rule out pagination (1,2,3,4,5,6)
+                # or repeated UI counters.
+                if (
+                    len(set(chunk)) == 6
+                    and (max(chunk) - min(chunk)) >= 10
+                ):
                     draws.append(sorted(chunk))
                     i += 6
                 else:

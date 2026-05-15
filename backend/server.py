@@ -228,7 +228,17 @@ async def hot_cold_digits_real() -> Dict[str, List[int]]:
     extra = await get_extra_pool()
     return ld.hot_cold_digits(extra_pool=extra, top_k=5)
 
-async def hot_cold_analysis_real(max_n: int) -> Dict[str, List[int]]:
+async def hot_cold_analysis_real(max_n: int, game_id: Optional[str] = None) -> Dict[str, List[int]]:
+    """Returns real hot/cold for Toto pick games.
+
+    If we have scraped Sports Toto draws for the specific game, use those for
+    accurate frequency analysis. Otherwise fall back to 2-digit window
+    extraction from the 4D dataset.
+    """
+    if game_id:
+        toto_doc = await db.toto_draws.find_one({"game_id": game_id}, {"_id": 0, "draws": 1})
+        if toto_doc and toto_doc.get("draws"):
+            return ld.hot_cold_from_toto_draws(toto_doc["draws"], max_n, top_k=8)
     extra = await get_extra_pool()
     return ld.hot_cold_numbers(max_n, extra_pool=extra, top_k=8)
 
@@ -267,7 +277,7 @@ async def ai_lucky_pick(game: dict, birthday: Optional[str], zodiac: Optional[st
         )
     else:
         max_n = game["max"]
-        hc = await hot_cold_analysis_real(max_n)
+        hc = await hot_cold_analysis_real(max_n, game_id=game["id"])
         sys_msg = (
             "You are a Malaysia lottery numerologist. You will produce one set of "
             f"{game['picks']} unique lucky lottery numbers from 1 to {max_n} for a player. "
@@ -630,17 +640,41 @@ async def trigger_scrape(user=Depends(require_admin)):
             "created_at": now_utc().isoformat(),
             "created_by": user["email"],
         })
-    return {"fetched": len(nums), "sample": nums[:10]}
+
+    # Sports Toto refresh
+    toto_results = {}
+    for game_id, max_n in [("6_58", 58), ("6_55", 55), ("6_52", 52), ("6_50", 50)]:
+        try:
+            draws = await asyncio.to_thread(ld.scrape_sportstoto, game_id, max_n, 60, 8.0)
+            if draws:
+                await db.toto_draws.delete_many({"game_id": game_id, "source": "scrape"})
+                await db.toto_draws.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "game_id": game_id,
+                    "draws": draws,
+                    "count": len(draws),
+                    "source": "scrape",
+                    "created_at": now_utc().isoformat(),
+                })
+            toto_results[game_id] = len(draws)
+        except Exception:
+            toto_results[game_id] = 0
+
+    return {"fetched": len(nums), "sample": nums[:10], "toto": toto_results}
 
 @app.get("/api/admin/stats")
 async def admin_stats(user=Depends(require_admin)):
     extra = await get_extra_pool()
     digits = await hot_cold_digits_real()
-    toto658 = await hot_cold_analysis_real(58)
+    toto658 = await hot_cold_analysis_real(58, game_id="6_58")
     total_users = await db.users.count_documents({})
     total_picks = await db.picks.count_documents({})
     total_txns = await db.payment_transactions.count_documents({})
     paid_txns = await db.payment_transactions.count_documents({"payment_status": "paid"})
+    toto_counts = {}
+    for gid in ("6_58", "6_55", "6_52", "6_50"):
+        doc = await db.toto_draws.find_one({"game_id": gid}, {"_id": 0, "count": 1})
+        toto_counts[gid] = (doc or {}).get("count", 0)
     return {
         "users": total_users,
         "picks": total_picks,
@@ -649,6 +683,7 @@ async def admin_stats(user=Depends(require_admin)):
         "digit_hot_cold": digits,
         "toto_6_58_hot_cold": toto658,
         "extra_pool_size": len(extra),
+        "toto_draw_counts": toto_counts,
     }
 
 

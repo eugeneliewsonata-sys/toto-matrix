@@ -116,7 +116,7 @@ export default function AdminPage() {
           onChange={e => setRawText(e.target.value)}
           data-testid="admin-raw-input"
         />
-        <button onClick={addDraws} disabled={busy === 'add'} className="btn-red w-full mt-3 inline-flex items-center justify-center gap-2" data-testid="admin-add-btn">
+        <button onClick={addDraws} disabled={busy === 'add' || !rawText.trim()} className="btn-red w-full mt-3 inline-flex items-center justify-center gap-2" data-testid="admin-add-btn">
           {busy === 'add' ? <><Loader2 size={14} className="animate-spin" /> Injecting…</> : <>Inject into Pool</>}
         </button>
       </div>
