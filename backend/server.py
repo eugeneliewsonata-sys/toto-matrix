@@ -130,10 +130,15 @@ def serialize_user(u: dict) -> dict:
 # ---------- App ----------
 app = FastAPI(title="LottoLuxe API")
 
+# Parse allowed origins; wildcard disables credentials per CORS spec.
+_origins_raw = os.environ.get("CORS_ORIGINS", "*").strip()
+_origins = [o.strip() for o in _origins_raw.split(",") if o.strip()]
+_use_wildcard = (len(_origins) == 1 and _origins[0] == "*")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=_origins if not _use_wildcard else ["*"],
+    allow_credentials=not _use_wildcard,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -649,14 +654,37 @@ async def admin_stats(user=Depends(require_admin)):
 
 @app.on_event("startup")
 async def _seed():
-    """Seed live pool cache once at startup (best-effort, non-blocking)."""
-    try:
-        nums = await asyncio.to_thread(ld.scrape_live_4d, 5.0, 200)
-        _LIVE_POOL_CACHE["text"] = "".join(nums)
-        _LIVE_POOL_CACHE["fetched_at"] = now_utc()
-        _LIVE_POOL_CACHE["count"] = len(nums)
-    except Exception:
-        pass
+    """Schedule live scrape as fire-and-forget so app start is not blocked."""
+    async def _bg():
+        try:
+            nums = await asyncio.to_thread(ld.scrape_live_4d, 8.0, 200)
+            _LIVE_POOL_CACHE["text"] = "".join(nums)
+            _LIVE_POOL_CACHE["fetched_at"] = now_utc()
+            _LIVE_POOL_CACHE["count"] = len(nums)
+            print(f"[startup] 4dmoon scrape ok: {len(nums)} numbers")
+        except Exception as e:
+            print(f"[startup] 4dmoon scrape failed: {e}")
+
+        # Sports Toto scrape (optional, best-effort)
+        try:
+            for game_id, max_n in [("6_58", 58), ("6_55", 55), ("6_52", 52), ("6_50", 50)]:
+                draws = await asyncio.to_thread(ld.scrape_sportstoto, game_id, max_n, 60, 8.0)
+                if draws:
+                    # Store latest draws (replace cache row per game)
+                    await db.toto_draws.delete_many({"game_id": game_id, "source": "scrape"})
+                    await db.toto_draws.insert_one({
+                        "id": str(uuid.uuid4()),
+                        "game_id": game_id,
+                        "draws": draws,
+                        "count": len(draws),
+                        "source": "scrape",
+                        "created_at": now_utc().isoformat(),
+                    })
+                    print(f"[startup] sports-toto {game_id}: {len(draws)} draws cached")
+        except Exception as e:
+            print(f"[startup] sports-toto scrape failed: {e}")
+
+    asyncio.create_task(_bg())
 
 
 @app.on_event("shutdown")

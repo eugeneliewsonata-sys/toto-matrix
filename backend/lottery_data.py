@@ -128,6 +128,27 @@ SCRAPE_HEADERS = {
     "Referer": "https://www.google.com/",
 }
 
+# Sports Toto results pages — multiple URLs tried in order.
+# These pages list multiple recent draws with 6 winning numbers each.
+SPORTSTOTO_URLS: Dict[str, List[str]] = {
+    "6_58": [
+        "https://en.lottolyzer.com/history/malaysia/sports-toto-6d/6-58",
+        "https://4d2u.com/history.php?id=toto658",
+    ],
+    "6_55": [
+        "https://en.lottolyzer.com/history/malaysia/power-toto/6-55",
+        "https://4d2u.com/history.php?id=toto655",
+    ],
+    "6_52": [
+        "https://en.lottolyzer.com/history/malaysia/star-toto/6-52",
+        "https://4d2u.com/history.php?id=toto652",
+    ],
+    "6_50": [
+        "https://en.lottolyzer.com/history/malaysia/supreme-toto/6-50",
+        "https://4d2u.com/history.php?id=toto650",
+    ],
+}
+
 
 def scrape_live_4d(timeout: float = 8.0, max_numbers: int = 200) -> List[str]:
     """Best-effort scrape of latest 4-digit numbers from 4dmoon.com.
@@ -144,3 +165,69 @@ def scrape_live_4d(timeout: float = 8.0, max_numbers: int = 200) -> List[str]:
         return nums[:max_numbers]
     except Exception:
         return []
+
+
+def scrape_sportstoto(game_id: str, max_n: int, max_draws: int = 60, timeout: float = 8.0) -> List[List[int]]:
+    """Best-effort scrape of Malaysia Sports Toto results for a specific game.
+
+    Strategy:
+      1. Fetch each candidate URL in SPORTSTOTO_URLS[game_id] until one returns
+         HTML with at least 6 valid Toto numbers in range.
+      2. Extract every 1-2 digit number in range [1, max_n] from the page text.
+      3. Group into consecutive chunks of 6 (a single draw is 6 numbers).
+      4. Return up to `max_draws` chunks, each a sorted list of 6 unique numbers.
+
+    Returns empty list if no source succeeds.
+    """
+    urls = SPORTSTOTO_URLS.get(game_id, [])
+    if not urls:
+        return []
+
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+    except Exception:
+        return []
+
+    for url in urls:
+        try:
+            r = requests.get(url, headers=SCRAPE_HEADERS, timeout=timeout)
+            r.raise_for_status()
+            text = BeautifulSoup(r.text, "html.parser").get_text(" ", strip=True)
+            # Find every 1- or 2-digit number; keep ones in valid range.
+            tokens = re.findall(r"\b\d{1,2}\b", text)
+            in_range = [int(t) for t in tokens if 1 <= int(t) <= max_n]
+            if len(in_range) < 6:
+                continue
+
+            draws: List[List[int]] = []
+            i = 0
+            while i + 6 <= len(in_range) and len(draws) < max_draws:
+                chunk = in_range[i:i+6]
+                # Treat as valid Toto draw if all 6 numbers are unique.
+                if len(set(chunk)) == 6:
+                    draws.append(sorted(chunk))
+                    i += 6
+                else:
+                    i += 1
+            if draws:
+                return draws
+        except Exception:
+            continue
+
+    return []
+
+
+def hot_cold_from_toto_draws(draws: List[List[int]], max_n: int, top_k: int = 8) -> Dict[str, List[int]]:
+    """Compute hot/cold directly from sets of 6-number Toto draws."""
+    c: Counter = Counter()
+    for draw in draws:
+        for n in draw:
+            if 1 <= n <= max_n:
+                c[n] += 1
+    full = [(n, c.get(n, 0)) for n in range(1, max_n + 1)]
+    full.sort(key=lambda x: x[1], reverse=True)
+    hot = sorted([n for n, _ in full[:top_k]])
+    cold_pool = [n for n, _ in full if _ == 0] or [n for n, _ in full[-top_k:]]
+    cold = sorted(cold_pool[:top_k])
+    return {"hot": hot, "cold": cold}
