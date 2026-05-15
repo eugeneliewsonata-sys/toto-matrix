@@ -51,7 +51,12 @@ Refinements from clarifications:
 - ✅ Deployment readiness verified by deployment_agent (PASS)
 - ✅ **Capacitor wrapping**: full native Android Studio project at `/app/frontend/android/`, Xcode workspace at `/app/frontend/ios/`, status-bar/splash plugins wired, build guide at `/app/MOBILE_BUILD_GUIDE.md`
 - ✅ **Privacy Policy** (`/privacy`) and **Terms of Service** (`/terms`) — publicly accessible (no auth wall), tailored for Malaysia lottery context with JH Creative Enterprise as operator, turyoungpotato@gmail.com as contact
-- ✅ Auth page footer + Profile page footer link to legal pages; Profile shows © JH Creative Enterprise
+- ✅ **Auth page footer + Profile page footer link to legal pages; Profile shows © JH Creative Enterprise**
+- ✅ **App icon generated** via Gemini Nano Banana: bold red "8" on white (luckiest Chinese number), Swiss-minimalist. Master at `/app/frontend/assets/icon.png` (1024×1024)
+- ✅ **All native icon sizes auto-generated** via `@capacitor/assets` (88 files: 74 Android, 7 iOS, 7 PWA)
+- ✅ **Play Store feature graphic** generated at `/app/frontend/assets/feature-graphic.png` (1024×500)
+- ✅ **PWA manifest updated** with proper icons + Apple touch icon link
+- ✅ **Store listing copy** prepared at `/app/STORE_LISTING.md` — title, short/full descriptions, keywords, release notes, submission checklist for both Play Store and App Store
 
 ## Prioritized Backlog
 **P0 / Next polish**
