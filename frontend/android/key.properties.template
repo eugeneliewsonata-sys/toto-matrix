@@ -1,0 +1,12 @@
+# Copy this file to `key.properties` (same directory) and fill in real values.
+# Then commit NOTHING — `key.properties` and `*.jks` are git-ignored.
+#
+# After creating your keystore (see ANDROID_RELEASE_BUILD.md step 1):
+#   1. Place the .jks file at:  /app/frontend/android/huatpick-release.jks
+#   2. Copy this file:          cp key.properties.template key.properties
+#   3. Edit the four values below
+
+storeFile=huatpick-release.jks
+storePassword=REPLACE_WITH_KEYSTORE_PASSWORD
+keyAlias=huatpick
+keyPassword=REPLACE_WITH_KEY_PASSWORD

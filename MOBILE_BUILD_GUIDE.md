@@ -63,6 +63,10 @@ yarn cap:sync          # builds React + syncs to android/ and ios/
 
 ## 3. Build & test on Android
 
+> 🎯 **Want the fast path?** For a copy-paste signed-`.aab` build for Play Store,
+> follow [`/app/ANDROID_RELEASE_BUILD.md`](./ANDROID_RELEASE_BUILD.md) — it covers
+> keystore generation, `key.properties` setup, and the exact Gradle command.
+
 ```bash
 yarn cap:android       # builds + opens Android Studio
 ```

@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunklottoluxe_frontend=self.webpackChunklottoluxe_frontend||[]).push([[484],{484(e,s,n){n.d(s,{SplashScreenWeb:()=>l});var t=n(403);class l extends t.E_{async show(e){}async hide(e){}}}}]);
+//# sourceMappingURL=484.84887003.chunk.js.map
