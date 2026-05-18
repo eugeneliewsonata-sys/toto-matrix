@@ -58,6 +58,14 @@ Refinements from clarifications:
 - ✅ **PWA manifest updated** with proper icons + Apple touch icon link
 - ✅ **Store listing copy** prepared at `/app/STORE_LISTING.md` — title, short/full descriptions, keywords, release notes, submission checklist for both Play Store and App Store
 
+## What's Been Implemented (May 18, 2026)
+- ✅ **Public account-deletion flow** (Google Play Data Safety compliance):
+  - `DELETE /api/auth/account` — authenticated, wipes user + history + picks, anonymises payment records
+  - `POST /api/auth/account/request-deletion` — public email-based request endpoint
+  - Public page at `/delete-account` (no auth wall): logged-in users delete immediately (type-DELETE confirm); logged-out users submit email request
+  - Linked from Profile (Trash icon) and Privacy Policy §4
+  - Backend flow verified end-to-end via curl (register → delete → 401 on /me)
+
 ## Prioritized Backlog
 **P0 / Next polish**
 - Push notifications for upcoming draw reminders

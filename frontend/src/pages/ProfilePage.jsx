@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../lib/auth';
-import { Crown, LogOut, Mail, ArrowRight, Shield } from 'lucide-react';
+import { Crown, LogOut, Mail, ArrowRight, Shield, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function ProfilePage() {
@@ -67,6 +67,10 @@ export default function ProfilePage() {
       <button onClick={onLogout} className="w-full inline-flex items-center justify-center gap-2 text-ink-mute py-4 hover:text-red transition-colors text-sm font-semibold" data-testid="logout-button">
         <LogOut size={15} /> Sign Out
       </button>
+
+      <Link to="/delete-account" className="w-full inline-flex items-center justify-center gap-2 text-ink-mute py-2 hover:text-red transition-colors text-xs" data-testid="profile-delete-account-link">
+        <Trash2 size={13} /> Delete my account
+      </Link>
 
       <p className="text-[11px] text-ink-mute text-center mt-8 leading-relaxed">
         HuatPick is an AI entertainment tool. No guarantees of winnings.<br />Play responsibly.

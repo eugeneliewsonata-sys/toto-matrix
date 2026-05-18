@@ -56,9 +56,11 @@ export default function PrivacyPolicyPage() {
 
       <Section title="4. Data retention">
         <P>Account and pick-history data are kept for as long as your account exists.
-        Payment records are kept for 7 years to comply with accounting regulations.
-        Server logs are rotated every 30 days. You can delete your account at any
-        time by emailing us — all personal data is removed within 30 days of the request.</P>
+        Payment records are kept (anonymised) for 7 years to comply with accounting regulations.
+        Server logs are rotated every 30 days. You can <strong>delete your account at any time</strong> —
+        either from inside the app (<em>Profile → Delete my account</em>) or via our public deletion page:{' '}
+        <Link to="/delete-account" className="text-red underline">{APP} Account Deletion</Link>.
+        All personal data is removed immediately (signed-in flow) or within 30 days (email request flow).</P>
       </Section>
 
       <Section title="5. Your rights">

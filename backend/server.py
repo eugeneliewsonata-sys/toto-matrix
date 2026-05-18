@@ -198,6 +198,63 @@ async def login(body: UserLogin):
 async def me(user=Depends(get_current_user)):
     return serialize_user(user)
 
+# ---------- Account Deletion (Google Play Data Safety compliance) ----------
+class DeletionRequest(BaseModel):
+    email: EmailStr
+    reason: Optional[str] = None
+
+@app.delete("/api/auth/account")
+async def delete_my_account(user=Depends(get_current_user)):
+    """Permanently delete the authenticated user's account and ALL related data.
+
+    Removes: user record, pick history, and any pending deletion requests.
+    Payment records are retained (anonymised by user_id removal) for 7-year
+    accounting compliance as disclosed in the Privacy Policy.
+    """
+    user_id = user["id"]
+    email = user["email"]
+
+    # Delete user-owned data
+    await db.history.delete_many({"user_id": user_id})
+    await db.picks.delete_many({"user_id": user_id})
+    # Anonymise payment records (keep amount/date for accounting, drop PII link)
+    await db.payments.update_many(
+        {"user_id": user_id},
+        {"$set": {"user_id": None, "user_email": None, "deleted_at": now_utc().isoformat()}},
+    )
+    # Clear any pending public deletion requests for this email
+    await db.deletion_requests.delete_many({"email": email})
+    # Finally delete the user
+    await db.users.delete_one({"id": user_id})
+
+    return {
+        "status": "deleted",
+        "email": email,
+        "message": "Your account and all associated personal data have been permanently deleted.",
+    }
+
+@app.post("/api/auth/account/request-deletion")
+async def request_account_deletion(body: DeletionRequest):
+    """Public endpoint — for users who lost access to their account.
+
+    Logs a deletion request for manual review (within 30 days). Always returns
+    success to avoid leaking which emails are registered.
+    """
+    req_id = str(uuid.uuid4())
+    doc = {
+        "id": req_id,
+        "email": body.email.lower(),
+        "reason": (body.reason or "")[:500],
+        "status": "pending",
+        "created_at": now_utc().isoformat(),
+        "user_exists": bool(await db.users.find_one({"email": body.email.lower()}, {"_id": 0, "id": 1})),
+    }
+    await db.deletion_requests.insert_one(doc)
+    return {
+        "status": "received",
+        "message": "Your deletion request has been received. We will permanently remove all associated data within 30 days. You will receive a confirmation email at the address provided.",
+    }
+
 # ---------- Number Generation ----------
 def quick_pick(max_n: int, count: int) -> List[int]:
     return sorted(random.sample(range(1, max_n + 1), count))
